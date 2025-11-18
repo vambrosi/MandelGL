@@ -1,0 +1,173 @@
+"use strict";
+
+export { initProgram };
+
+function initProgram(gl, functionToIterateSource) {
+  const vsSource = getVSSource();
+  const fsSourcePieces = getFSSource();
+
+  const fsSource =
+    fsSourcePieces.utilSource +
+    functionToIterateSource +
+    fsSourcePieces.mainSource;
+
+  const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+  const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+  // Create the shader program
+
+  const program = gl.createProgram();
+  gl.attachShader(program, vertexShader);
+  gl.attachShader(program, fragmentShader);
+  gl.linkProgram(program);
+
+  // If creating the shader program failed, alert
+
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    alert(`Unable to initialize program: ${gl.getProgramInfoLog(program)}`);
+    return null;
+  }
+
+  return program;
+}
+
+function loadShader(gl, type, source) {
+  const shader = gl.createShader(type);
+
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    alert(`Unable to compile shaders:\n${gl.getShaderInfoLog(shader)}`);
+    gl.deleteShader(shader);
+    return null;
+  }
+
+  return shader;
+}
+
+function getVSSource() {
+  return `
+    attribute vec4 aPosition;     
+
+    uniform mat4 uLocalMatrix;
+    uniform mat4 uModelMatrix;
+    uniform mat4 uViewMatrix;
+    uniform mat4 uProjMatrix;
+
+    varying vec4 modelPos;
+    varying vec4 localPos;
+
+    void main(void) {
+      localPos = aPosition;
+      modelPos = uProjMatrix * uViewMatrix * uModelMatrix
+                    * uLocalMatrix * aPosition;
+      gl_Position = uProjMatrix * uViewMatrix * uModelMatrix
+                    * uLocalMatrix * aPosition;
+    }`;
+}
+
+function getFSSource() {
+  const utilSource = `
+    // In and Out variables
+    precision highp float;
+
+    uniform sampler2D uColorPalette;
+    uniform vec3 uMousePosition;
+    uniform mat4 uProjMatrix;
+    uniform mat4 uMobiusMatrix;
+
+    varying vec4 modelPos;
+    varying vec4 localPos;
+
+    // Complex Addition in Projective Coordinates
+    vec4 _pAdd(vec4 a, vec4 b) {
+      return normalize(vec4(
+        a.x * b.z - a.y * b.w + a.z * b.x - a.w * b.y,
+        a.x * b.w + a.y * b.z + a.z * b.y + a.w * b.x,
+        a.z * b.z - a.w * b.w,
+        a.z * b.w + a.w * b.z
+      ));
+    }
+
+    // Complex Subtraction in Projective Coordinates
+    vec4 _pSub(vec4 a, vec4 b) {
+      return normalize(vec4(
+        a.x * b.z - a.y * b.w - a.z * b.x + a.w * b.y,
+        a.x * b.w + a.y * b.z - a.z * b.y - a.w * b.x,
+        a.z * b.z - a.w * b.w,
+        a.z * b.w + a.w * b.z
+      ));
+    }
+
+    // Complex Additive Inverse in Projective Coordinates
+    vec4 _pOpp(vec4 a) {return vec4(-a.xy, a.zw);}
+
+    // Complex Multiplication in Projective Coordinates
+    vec4 _pMul(vec4 a, vec4 b) {
+      return normalize(vec4(
+        a.x * b.x - a.y * b.y,
+        a.x * b.y + a.y * b.x,
+        a.z * b.z - a.w * b.w,
+        a.z * b.w + a.w * b.z
+      ));
+    }
+
+    // Complex Division in Projective Coordinates
+    vec4 _pDiv(vec4 a, vec4 b) {
+      return normalize(vec4(
+        a.x * b.z - a.y * b.w,
+        a.x * b.w + a.y * b.z,
+        a.z * b.x - a.w * b.y,
+        a.z * b.y + a.w * b.x
+      ));
+    }
+    
+    // Complex Multiplicative Inverse in Projective Coordinates
+    vec4 _pInv(vec4 a) {return vec4(a.zw, a.xy);}
+    
+    // Distance in the Complex Projective Line
+    // Assumes that both vec4s are normalized
+    float _pDist(vec4 a, vec4 b) {
+      return length(vec2(
+        a.x * b.z - a.y * b.w - a.z * b.x + a.w * b.y,
+        a.x * b.w + a.y * b.z + a.z * b.y + a.w * b.x
+      ));
+    }`;
+
+  const mainSource = `
+    void main(void) {
+      vec4 c = vec4(localPos.xy, 1.0 + localPos.z, 0.0);
+      c = uMobiusMatrix * c;
+      vec4 z = vec4(0.0, 0.0, 1.0, 0.0);
+
+      const vec4 infinity = vec4(1.0, 0.0, 0.0, 0.0);
+      
+      gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+      
+      for (int iter = 0; iter < 200; iter++) {
+        if (_pDist(z, infinity) < 1e-3) {
+            float dist = _pDist(z, infinity);
+            float depth = 0.5 - 0.5 * cos(
+                3.14 * (float(iter) - log2(-log(dist))) / 1024.0
+            );
+            gl_FragColor = texture2D(uColorPalette, vec2(511.0 * depth, 0.5));
+            break;
+        }
+        
+        z = _user_defined_function(z,c);
+      }
+
+      vec2 testVector = modelPos.xy / modelPos.w - uMousePosition.xy;
+      testVector.x *= uProjMatrix[1][1] / uProjMatrix[0][0];
+      if (length(testVector) < 0.01) {
+        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+      }
+    }
+    `;
+
+  return {
+    utilSource: utilSource,
+    mainSource: mainSource,
+  };
+}

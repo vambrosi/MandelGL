@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>MandelGL</title>
+    <script src="lib/math.js"></script>
+    <script src="lib/gl-matrix-min.js" type="module"></script>
+
+    <script src="js/gl-mandel.js" type="module"></script>
+
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="assets/styles.css" />
+    <link rel="shortcut icon" href="assets/favicon.ico" />
+  </head>
+
+  <body>
+    <canvas id="gl-canvas"></canvas>
+    <div id="frame-rate-container"><span id="frame-rate"></span> FPS</div>
+
+    <ul class="menu">
+      <li class="menuTitle collapseMenu">Commands</li>
+      <li class="menuItem collapseMenu">
+        Pan View
+        <span class="shortcut">Click + Drag</span>
+      </li>
+      <li class="menuItem collapseMenu">
+        Zoom
+        <span class="shortcut">Scroll or Pinch Zoom</span>
+      </li>
+      <li class="menuTitle">Settings</li>
+      <li class="menuItem">
+        f(z, c) =
+        <div class="shortcut">
+          <input
+            id="fInput"
+            class="long"
+            type="text"
+            required
+          />
+          <span></span>
+        </div>
+      </li>
+    </ul>
+
+    <button class="hamburger">
+      <i class="menuIcon material-icons">menu</i>
+      <i class="closeIcon material-icons" style="display: none">close</i>
+    </button>
+  </body>
+</html>
