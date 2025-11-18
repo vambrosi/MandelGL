@@ -8,11 +8,23 @@ import { handleMousemove, handleScroll } from "./event-handlers.js";
 import { drawScene } from "./draw-scene.js";
 import { toGLSL } from "./parser.js";
 
+// Set Menu
+const menu = document.querySelector(".menu");
+const hamburger = document.querySelector(".hamburger");
+const closeIcon = document.querySelector(".closeIcon");
+const menuIcon = document.querySelector(".menuIcon");
+
+hamburger.addEventListener("click", (e) =>
+  toggleMenu(e, menu, closeIcon, menuIcon)
+);
+
+const compileButton = document.querySelector("#compileButton");
+
 // Default dynamical system to plot f(z,c) = z^2 + c
 const fInput = document.querySelector("#fInput");
 fInput.value = "z^2 + c";
 
-main(fInput.value);
+main();
 
 function main(fExpr) {
   const canvas = document.querySelector("#gl-canvas");
@@ -23,14 +35,6 @@ function main(fExpr) {
     alert("Your browser or machine may not support WebGL.");
     return;
   }
-
-  // Set Menu
-  const menu = document.querySelector(".menu");
-  const hamburger = document.querySelector(".hamburger");
-  const closeIcon = document.querySelector(".closeIcon");
-  const menuIcon = document.querySelector(".menuIcon");
-
-  hamburger.addEventListener("click", (e) => toggleMenu(e, menu, closeIcon, menuIcon));
 
   // Set State and Event Handlers
   const state = initState();
@@ -58,37 +62,29 @@ function main(fExpr) {
   // const critInput = document.querySelector("#critInput");
   // critInput.value = "0.0";
 
-  console.log("GLSL function: " + toGLSL(fInput.value));
-
   const fToIterateSource = `
     vec4 _user_defined_function(vec4 z, vec4 c) {
       return ${toGLSL(fInput.value)};
     }
     `;
 
-  // Compile shaders and set uniforms
+  // Compile initial shaders and set uniforms
   const shaderProgram = initProgram(gl, fToIterateSource);
+  let programInfo = setProgramInfo(gl, shaderProgram);
 
-  const programInfo = {
-    program: shaderProgram,
-    attribLocations: {
-      aPosition: gl.getAttribLocation(shaderProgram, "aPosition"),
-    },
+  // Change function after start
+  compileButton.addEventListener("click", (e) => {
+    const GLSLCode = toGLSL(fInput.value);
+    const fToIterateSource = `
+    vec4 _user_defined_function(vec4 z, vec4 c) {
+      return ${GLSLCode};
+    }
+    `;
+    console.log("GLSL function: " + GLSLCode);
+    const shaderProgram = initProgram(gl, fToIterateSource);
 
-    uLocations: {
-      mousePosition: gl.getUniformLocation(shaderProgram, "uMousePosition"),
-
-      mobiusMatrix: gl.getUniformLocation(shaderProgram, "uMobiusMatrix"),
-
-      localMatrix: gl.getUniformLocation(shaderProgram, "uLocalMatrix"),
-      modelMatrix: gl.getUniformLocation(shaderProgram, "uModelMatrix"),
-
-      viewMatrix: gl.getUniformLocation(shaderProgram, "uViewMatrix"),
-      projMatrix: gl.getUniformLocation(shaderProgram, "uProjMatrix"),
-
-      colorPalette: gl.getUniformLocation(shaderProgram, "uColorPalette"),
-    },
-  };
+    programInfo = setProgramInfo(gl, shaderProgram);
+  });
 
   // Set the input for the shaders
   const buffers = initBuffers(gl, 128, 64);
@@ -135,4 +131,22 @@ function toggleMenu(e, menu, closeIcon, menuIcon) {
     closeIcon.style.display = "block";
     menuIcon.style.display = "none";
   }
+}
+
+function setProgramInfo(gl, shaderProgram) {
+  return {
+    program: shaderProgram,
+    attribLocations: {
+      aPosition: gl.getAttribLocation(shaderProgram, "aPosition"),
+    },
+    uLocations: {
+      mousePosition: gl.getUniformLocation(shaderProgram, "uMousePosition"),
+      mobiusMatrix: gl.getUniformLocation(shaderProgram, "uMobiusMatrix"),
+      localMatrix: gl.getUniformLocation(shaderProgram, "uLocalMatrix"),
+      modelMatrix: gl.getUniformLocation(shaderProgram, "uModelMatrix"),
+      viewMatrix: gl.getUniformLocation(shaderProgram, "uViewMatrix"),
+      projMatrix: gl.getUniformLocation(shaderProgram, "uProjMatrix"),
+      colorPalette: gl.getUniformLocation(shaderProgram, "uColorPalette"),
+    },
+  };
 }
