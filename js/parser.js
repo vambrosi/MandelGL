@@ -7,8 +7,8 @@ function toGLSL(expr) {
 function inputParser(node, options) {
   switch (node.type) {
     case "OperatorNode":
-      switch (node.op) {
-        case "+":
+      switch (node.fn) {
+        case "add":
           return (
             "_pAdd(" +
             node.args[0].toString(options) +
@@ -16,7 +16,7 @@ function inputParser(node, options) {
             node.args[1].toString(options) +
             ")"
           );
-        case "-":
+        case "subtract":
           return (
             "_pSub(" +
             node.args[0].toString(options) +
@@ -24,7 +24,9 @@ function inputParser(node, options) {
             node.args[1].toString(options) +
             ")"
           );
-        case "*":
+        case "unaryMinus":
+          return "_pOpp(" + node.args[0].toString(options) + ")";
+        case "multiply":
           return (
             "_pMul(" +
             node.args[0].toString(options) +
@@ -32,7 +34,7 @@ function inputParser(node, options) {
             node.args[1].toString(options) +
             ")"
           );
-        case "/":
+        case "divide":
           return (
             "_pDiv(" +
             node.args[0].toString(options) +
@@ -40,7 +42,7 @@ function inputParser(node, options) {
             node.args[1].toString(options) +
             ")"
           );
-        case "^":
+        case "pow":
           const pow = Number(node.args[1]);
           if (Number.isInteger(pow)) {
             let string = "";
@@ -49,7 +51,7 @@ function inputParser(node, options) {
               string += "_pMul(" + node.args[0].toString(options) + ", ";
             }
 
-            string += node.args[0] + ")".repeat(pow - 1);
+            string += node.args[0].toString(options) + ")".repeat(pow - 1);
             return string;
           } else {
             return (

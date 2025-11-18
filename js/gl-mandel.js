@@ -6,7 +6,6 @@ import { initBuffers } from "./init-buffers.js";
 import { initColorPalette } from "./init-palette.js";
 import { handleMousemove, handleScroll } from "./event-handlers.js";
 import { drawScene } from "./draw-scene.js";
-import { toGLSL } from "./parser.js";
 
 // Set Menu
 const menu = document.querySelector(".menu");
@@ -24,9 +23,13 @@ const compileButton = document.querySelector("#compileButton");
 const fInput = document.querySelector("#fInput");
 fInput.value = "z^2 + c";
 
+// Default critical value to iterate is crit(c) = 0.0;
+const critInput = document.querySelector("#critInput");
+critInput.value = "0.0";
+
 main();
 
-function main(fExpr) {
+function main() {
   const canvas = document.querySelector("#gl-canvas");
   const gl = canvas.getContext("webgl");
 
@@ -61,27 +64,18 @@ function main(fExpr) {
 
   // const critInput = document.querySelector("#critInput");
   // critInput.value = "0.0";
-
-  const fToIterateSource = `
-    vec4 _user_defined_function(vec4 z, vec4 c) {
-      return ${toGLSL(fInput.value)};
-    }
-    `;
+  const fExpr = fInput.value;
+  const critExpr = critInput.value;
 
   // Compile initial shaders and set uniforms
-  const shaderProgram = initProgram(gl, fToIterateSource);
+  const shaderProgram = initProgram(gl, fExpr, critExpr);
   let programInfo = setProgramInfo(gl, shaderProgram);
 
   // Change function after start
   compileButton.addEventListener("click", (e) => {
-    const GLSLCode = toGLSL(fInput.value);
-    const fToIterateSource = `
-    vec4 _user_defined_function(vec4 z, vec4 c) {
-      return ${GLSLCode};
-    }
-    `;
-    console.log("GLSL function: " + GLSLCode);
-    const shaderProgram = initProgram(gl, fToIterateSource);
+    const fExpr = fInput.value;
+    const critExpr = critInput.value;
+    const shaderProgram = initProgram(gl, fExpr, critExpr);
 
     programInfo = setProgramInfo(gl, shaderProgram);
   });
