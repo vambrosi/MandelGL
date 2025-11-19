@@ -43,8 +43,10 @@ canvas {
   align-items: center;
 }
 
-.menuItem span {
-  flex-grow: 1;
+.expand {
+  width: 80%;
+  max-width: 240px;
+  margin-left: 20px;
 }
 
 .shortcut {
@@ -54,7 +56,6 @@ canvas {
 }
 
 input {
-  width: 100%;
   font-family: "Space Mono";
 }
 
@@ -124,4 +125,9 @@ button {
   left: 60px;
   color: #f4ebf4;
   font-size: 22px;
+}
+
+#compileButton {
+  margin-top: 50px;
+  margin-right: 32px;
 }

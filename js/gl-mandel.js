@@ -36,19 +36,28 @@ function main(menuItems, buttons) {
   gl.clear(gl.COLOR_BUFFER_BIT);
 
   // Get initial functions
-  const fExpr = menuItems.fInput.value;
-  const critExpr = menuItems.critInput.value;
+  const settings = {
+      fExpr: menuItems.fInput.value,
+      critExpr: menuItems.critInput.value,
+      cExpr: menuItems.cInput.value,
+      isParameter: menuItems.parameterRadio.checked,
+    }
 
   // Compile initial shaders and set uniforms
-  const shaderProgram = initProgram(gl, fExpr, critExpr);
+  // By default it plots the parameter plane
+  const shaderProgram = initProgram(gl, settings);
   let programInfo = setProgramInfo(gl, shaderProgram);
 
   // Change function after start
   menuItems.compileButton.addEventListener("click", (e) => {
-    const fExpr = menuItems.fInput.value;
-    const critExpr = menuItems.critInput.value;
-    const shaderProgram = initProgram(gl, fExpr, critExpr);
-
+    const settings = {
+      fExpr: menuItems.fInput.value,
+      critExpr: menuItems.critInput.value,
+      cExpr: menuItems.cInput.value,
+      isParameter: menuItems.parameterRadio.checked,
+    }
+    
+    const shaderProgram = initProgram(gl, settings);
     programInfo = setProgramInfo(gl, shaderProgram);
   });
 

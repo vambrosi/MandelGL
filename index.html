@@ -34,28 +34,61 @@
       <li class="menuTitle">Settings</li>
       <li class="menuItem">
         <span>Pick one example: </span>
-        <select id="exampleSelect" name="Families of maps">
-          <option value="mandel" selected>Mandelbrot Set</option>
-          <option value="per2">Per₂</option>
-          <option value="per3_0">Per₃(0)</option>
-          <option value="per4_0">Per₄(0)</option>
-        </select>
+        <div class="shortcut">
+          <select id="exampleSelect" class="expand" name="Families of maps">
+            <option value="mandel" selected>Mandelbrot Set</option>
+            <option value="per2">Per₂</option>
+            <option value="per3_0">Per₃(0)</option>
+            <option value="per4_0">Per₄(0)</option>
+          </select>
+        </div>
       </li>
       <li class="menuItem">
         <span>f(z, c) = </span>
         <div class="shortcut">
-          <input id="fInput" class="long" type="text" required />
+          <input id="fInput" class="expand" type="text" required />
           <span></span>
         </div>
       </li>
       <li class="menuItem">
         <span>crit(c) = </span>
         <div class="shortcut">
-          <input id="critInput" class="long" type="text" required />
+          <input id="critInput" class="expand" type="text" required />
           <span></span>
         </div>
       </li>
       <li class="menuItem">
+        <span>c = </span>
+        <div class="shortcut">
+          <input id="cInput" class="expand" type="text" required />
+          <span></span>
+        </div>
+      </li>
+      <li class="menuItem">
+        <span>Plane type: </span>
+        <div class="shortcut">
+            <div>
+              <input
+                type="radio"
+                id="parameterRadio"
+                name="planeType"
+                value="parameter"
+                checked
+              />
+              <label for="parameterRadio">Parameter Plane</label>
+            </div>
+            <div>
+              <input
+                type="radio"
+                id="dynamicalRadio"
+                name="planeType"
+                value="dynamical"
+              />
+              <label for="dynamicalRadio">Dynamical Plane</label>
+            </div>
+        </div>
+      </li> 
+      <li>
         <div class="shortcut">
           <button id="compileButton">Compile</button>
         </div>

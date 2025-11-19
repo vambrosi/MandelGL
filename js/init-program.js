@@ -4,9 +4,9 @@ export { initProgram };
 
 import { toGLSL } from "./parser.js";
 
-function initProgram(gl, fExpr, critExpr) {
+function initProgram(gl, settings) {
   const vsSource = getVSSource();
-  const fsSource = getFSSource(fExpr, critExpr);
+  const fsSource = getFSSource(settings);
 
   const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
   const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
@@ -64,16 +64,27 @@ function getVSSource() {
     }`;
 }
 
-function getFSSource(fExpr, critExpr) {
-  const fGLSL = toGLSL(fExpr, true);
+function getFSSource(settings) {
+  const fGLSL = toGLSL(settings.fExpr, true);
 
-  console.log("f(z,c):    " + fExpr);
-  console.log("f GLSL:    " + fGLSL);
-
-  const critGLSL = toGLSL(critExpr, false);
-
-  console.log("crit(c):   " + critExpr);
-  console.log("crit GLSL: " + critGLSL);
+  let initialValueCode;
+  if (settings.isParameter) {
+    const critGLSL = toGLSL(settings.critExpr, false);
+    
+    initialValueCode = `
+      vec4 c = vec4(localPos.xy, 1.0 + localPos.z, 0.0);
+      c = uMobiusMatrix * c;
+      vec4 z = vec4(${critGLSL}, 1.0, 0.0);
+    `;
+  } else {
+    const cGLSL = toGLSL(settings.cExpr, false);
+    
+    initialValueCode = `
+      vec4 z = vec4(localPos.xy, 1.0 + localPos.z, 0.0);
+      z = uMobiusMatrix * z;
+      vec4 c = vec4(${cGLSL}, 1.0, 0.0);
+    `;
+  }
 
   const code = `
     // In and Out variables
@@ -97,9 +108,7 @@ function getFSSource(fExpr, critExpr) {
 
     // Iterate function until it escapes
     void main(void) {
-      vec4 c = vec4(localPos.xy, 1.0 + localPos.z, 0.0);
-      c = uMobiusMatrix * c;
-      vec4 z = vec4(${critGLSL}, 1.0, 0.0);
+      ${initialValueCode}
 
       const vec4 infinity = vec4(1.0, 0.0, 0.0, 0.0);
       

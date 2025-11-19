@@ -32,7 +32,15 @@ function setMenuEvents() {
   const critInput = document.querySelector("#critInput");
   critInput.value = "0.0";
 
+  // Default c for the Parameter plane is 0.0;
+  const cInput = document.querySelector("#cInput");
+  cInput.value = "0.0";
+
   const exampleSelect = document.querySelector("#exampleSelect");
+  exampleSelect.value = "mandel";
+
+  const parameterRadio = document.querySelector('#parameterRadio');
+  parameterRadio.checked = true;
 
   exampleSelect.addEventListener("change", (e) => {
     switch (e.target.value) {
@@ -58,6 +66,8 @@ function setMenuEvents() {
   return {
     fInput: fInput,
     critInput: critInput,
+    cInput: cInput,
+    parameterRadio: parameterRadio,
     compileButton: compileButton,
   };
 }
