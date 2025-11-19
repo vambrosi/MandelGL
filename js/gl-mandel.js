@@ -4,36 +4,20 @@ import { initState } from "./init-state.js";
 import { initProgram } from "./init-program.js";
 import { initBuffers } from "./init-buffers.js";
 import { initColorPalette } from "./init-palette.js";
-import { setEventListeners } from "./event-handlers.js";
+import { setGLEvents, setMenuEvents } from "./event-handlers.js";
 import { drawScene } from "./draw-scene.js";
 
-// Set Menu
-const menu = document.querySelector(".menu");
-const hamburger = document.querySelector(".hamburger");
-const closeIcon = document.querySelector(".closeIcon");
-const menuIcon = document.querySelector(".menuIcon");
+// Set Menu button, events, and default settings
+const menuItems = setMenuEvents();
 
-hamburger.addEventListener("click", (e) =>
-  toggleMenu(e, menu, closeIcon, menuIcon)
-);
-
-const compileButton = document.querySelector("#compileButton");
-
-// Default dynamical system to plot f(z,c) = z^2 + c
-const fInput = document.querySelector("#fInput");
-fInput.value = "z^2 + c";
-
-// Default critical value to iterate is crit(c) = 0.0;
-const critInput = document.querySelector("#critInput");
-critInput.value = "0.0";
-
+// Get references to the other buttons
 const buttons = {
   reset: document.querySelector("#reset"),
 };
 
-main();
+main(menuItems, buttons);
 
-function main() {
+function main(menuItems, buttons) {
   const canvas = document.querySelector("#gl-canvas");
   const gl = canvas.getContext("webgl");
 
@@ -45,25 +29,24 @@ function main() {
 
   // Set State and Event Handlers
   const state = initState();
-  setEventListeners(gl, state, buttons);
+  setGLEvents(gl, state, buttons);
 
   // Set clear color to black, fully opaque
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-  // const critInput = document.querySelector("#critInput");
-  // critInput.value = "0.0";
-  const fExpr = fInput.value;
-  const critExpr = critInput.value;
+  // Get initial functions
+  const fExpr = menuItems.fInput.value;
+  const critExpr = menuItems.critInput.value;
 
   // Compile initial shaders and set uniforms
   const shaderProgram = initProgram(gl, fExpr, critExpr);
   let programInfo = setProgramInfo(gl, shaderProgram);
 
   // Change function after start
-  compileButton.addEventListener("click", (e) => {
-    const fExpr = fInput.value;
-    const critExpr = critInput.value;
+  menuItems.compileButton.addEventListener("click", (e) => {
+    const fExpr = menuItems.fInput.value;
+    const critExpr = menuItems.critInput.value;
     const shaderProgram = initProgram(gl, fExpr, critExpr);
 
     programInfo = setProgramInfo(gl, shaderProgram);
@@ -102,18 +85,6 @@ function main() {
   }
 
   requestAnimationFrame(render);
-}
-
-function toggleMenu(e, menu, closeIcon, menuIcon) {
-  if (menu.classList.contains("showMenu")) {
-    menu.classList.remove("showMenu");
-    closeIcon.style.display = "none";
-    menuIcon.style.display = "block";
-  } else {
-    menu.classList.add("showMenu");
-    closeIcon.style.display = "block";
-    menuIcon.style.display = "none";
-  }
 }
 
 function setProgramInfo(gl, shaderProgram) {

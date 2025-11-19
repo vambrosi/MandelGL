@@ -1,10 +1,45 @@
 "use strict";
 
-export { setEventListeners };
+export { setGLEvents, setMenuEvents };
 
 const { mat4, mat3, vec3, vec4 } = glMatrix;
 
-function setEventListeners(gl, state, buttons) {
+function setMenuEvents() {
+  const menu = document.querySelector(".menu");
+  const hamburger = document.querySelector(".hamburger");
+  const closeIcon = document.querySelector(".closeIcon");
+  const menuIcon = document.querySelector(".menuIcon");
+
+  hamburger.addEventListener("click", (e) => {
+    if (menu.classList.contains("showMenu")) {
+      menu.classList.remove("showMenu");
+      closeIcon.style.display = "none";
+      menuIcon.style.display = "block";
+    } else {
+      menu.classList.add("showMenu");
+      closeIcon.style.display = "block";
+      menuIcon.style.display = "none";
+    }
+  });
+
+  const compileButton = document.querySelector("#compileButton");
+
+  // Default dynamical system to plot f(z,c) = z^2 + c
+  const fInput = document.querySelector("#fInput");
+  fInput.value = "z^2 + c";
+
+  // Default critical value to iterate is crit(c) = 0.0;
+  const critInput = document.querySelector("#critInput");
+  critInput.value = "0.0";
+
+  return {
+    fInput: fInput,
+    critInput: critInput,
+    compileButton: compileButton,
+  };
+}
+
+function setGLEvents(gl, state, buttons) {
   // Set Mouse Events
   gl.canvas.addEventListener("mousedown", (e) => {
     state.mouse.isDown = true;
