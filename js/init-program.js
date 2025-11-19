@@ -70,7 +70,7 @@ function getFSSource(settings) {
   let initialValueCode;
   if (settings.isParameter) {
     const critGLSL = toGLSL(settings.critExpr, false);
-    
+
     initialValueCode = `
       vec4 c = vec4(localPos.xy, 1.0 + localPos.z, 0.0);
       c = uMobiusMatrix * c;
@@ -78,7 +78,7 @@ function getFSSource(settings) {
     `;
   } else {
     const cGLSL = toGLSL(settings.cExpr, false);
-    
+
     initialValueCode = `
       vec4 z = vec4(localPos.xy, 1.0 + localPos.z, 0.0);
       z = uMobiusMatrix * z;
@@ -117,10 +117,11 @@ function getFSSource(settings) {
       for (int iter = 0; iter < 200; iter++) {
         if (_pDist(z, infinity) < 1e-3) {
             float d = _pDist(z, infinity);
-            float depth = 0.5 - 0.5 * cos(
-                3.14 * (float(iter) - log2(-log(d))) / 1024.0
+            float depth = fract((float(iter) - log2(-log(d))) / 64.0);
+            gl_FragColor = texture2D(
+              uColorPalette, 
+              vec2((511.0 * depth + 0.5) / 512.0, 0.5)
             );
-            gl_FragColor = texture2D(uColorPalette, vec2(511.0 * depth, 0.5));
             break;
         }
         

@@ -53,9 +53,17 @@ function generateSphereVertices(meridians, parallels) {
   const parallelSpacing = Math.PI / (parallels + 1);
 
   let idx = -1;
-  
-  for (let theta = 0; theta < Math.PI + parallelSpacing / 2; theta += parallelSpacing) {
-    for (let phi = 0; phi < 2 * Math.PI + meridianSpacing / 2; phi += meridianSpacing) {
+
+  for (
+    let theta = 0;
+    theta < Math.PI + parallelSpacing / 2;
+    theta += parallelSpacing
+  ) {
+    for (
+      let phi = 0;
+      phi < 2 * Math.PI + meridianSpacing / 2;
+      phi += meridianSpacing
+    ) {
       positions[++idx] = Math.sin(theta) * Math.cos(phi);
       positions[++idx] = Math.sin(theta) * Math.sin(phi);
       positions[++idx] = Math.cos(theta);
@@ -80,7 +88,6 @@ function generateSphereIndices(meridians, parallels) {
       bottomRight = bottomLeft + 1;
       topLeft = bottomLeft + parallelSkip;
       topRight = topLeft + 1;
-
 
       // Bottom triangle
       indices[++idx] = bottomLeft;

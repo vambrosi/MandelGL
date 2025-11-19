@@ -39,7 +39,7 @@ function setMenuEvents() {
   const exampleSelect = document.querySelector("#exampleSelect");
   exampleSelect.value = "mandel";
 
-  const parameterRadio = document.querySelector('#parameterRadio');
+  const parameterRadio = document.querySelector("#parameterRadio");
   parameterRadio.checked = true;
 
   exampleSelect.addEventListener("change", (e) => {
@@ -61,7 +61,7 @@ function setMenuEvents() {
         critInput.value = "(4c^2-2c) / (-1+c+c^2)";
         break;
     }
-  })
+  });
 
   return {
     fInput: fInput,

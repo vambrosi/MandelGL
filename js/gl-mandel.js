@@ -37,11 +37,11 @@ function main(menuItems, buttons) {
 
   // Get initial functions
   const settings = {
-      fExpr: menuItems.fInput.value,
-      critExpr: menuItems.critInput.value,
-      cExpr: menuItems.cInput.value,
-      isParameter: menuItems.parameterRadio.checked,
-    }
+    fExpr: menuItems.fInput.value,
+    critExpr: menuItems.critInput.value,
+    cExpr: menuItems.cInput.value,
+    isParameter: menuItems.parameterRadio.checked,
+  };
 
   // Compile initial shaders and set uniforms
   // By default it plots the parameter plane
@@ -55,8 +55,8 @@ function main(menuItems, buttons) {
       critExpr: menuItems.critInput.value,
       cExpr: menuItems.cInput.value,
       isParameter: menuItems.parameterRadio.checked,
-    }
-    
+    };
+
     const shaderProgram = initProgram(gl, settings);
     programInfo = setProgramInfo(gl, shaderProgram);
   });

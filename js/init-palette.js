@@ -138,7 +138,7 @@ function initColorPalette(gl) {
 
   const level = 0;
   const format = gl.RGBA;
-  const width = colorPalette.length / 4;
+  const width = Math.round(colorPalette.length / 4);
   const height = 1;
   const border = 0;
   const type = gl.UNSIGNED_BYTE;
@@ -155,7 +155,8 @@ function initColorPalette(gl) {
     new Uint8Array(colorPalette)
   );
 
-  gl.generateMipmap(gl.TEXTURE_2D);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
   return paletteTexture;
 }
