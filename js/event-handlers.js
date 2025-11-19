@@ -29,9 +29,7 @@ function handleMousemove(event, gl, state) {
     mat4.rotate(
       state.parameterSpace.localMatrix,
       state.parameterSpace.localMatrix,
-      vec3.length(state.parameterSpace.rotationAxis) *
-        state.world.deltaTime *
-        100,
+      vec3.length(state.parameterSpace.rotationAxis),
       state.parameterSpace.rotationAxis
     );
 
@@ -102,7 +100,7 @@ function updateMobius(mobius, pt1, pt2, scale) {
     -f,  e, -h,  g,
   )
 
-  mat4.mul(mobius, new_mobius, mobius);
+  mat4.mul(mobius, mobius, new_mobius);
 }
 
 function mutateToProjective(v) {
