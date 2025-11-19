@@ -32,6 +32,29 @@ function setMenuEvents() {
   const critInput = document.querySelector("#critInput");
   critInput.value = "0.0";
 
+  const exampleSelect = document.querySelector("#exampleSelect");
+
+  exampleSelect.addEventListener("change", (e) => {
+    switch (e.target.value) {
+      case "mandel":
+        fInput.value = "z^2 + c";
+        critInput.value = "0.0";
+        break;
+      case "per2":
+        fInput.value = "(z^2-c) / (z^2-1)";
+        critInput.value = "0.0";
+        break;
+      case "per3_0":
+        fInput.value = "(z^2-1+c-c^3) / (z^2-c^2)";
+        critInput.value = "0.0";
+        break;
+      case "per4_0":
+        fInput.value = "(z-c)*(z-(2c-1)/(c-1))/z^2";
+        critInput.value = "(4c^2-2c) / (-1+c+c^2)";
+        break;
+    }
+  })
+
   return {
     fInput: fInput,
     critInput: critInput,
