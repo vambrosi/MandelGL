@@ -55,7 +55,7 @@ function handleMousemove(event, gl, state) {
     mat4.rotate(
       state.parameterSpace.localMatrix,
       state.parameterSpace.localMatrix,
-      vec3.length(state.parameterSpace.rotationAxis),
+      vec3.length(state.parameterSpace.rotationAxis) * 1.5,
       state.parameterSpace.rotationAxis
     );
 

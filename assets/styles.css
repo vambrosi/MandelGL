@@ -117,4 +117,11 @@ button {
   display: block;
 }
 
-
+#title {
+  position: fixed;
+  z-index: 100;
+  top: 15px;
+  left: 60px;
+  color: #f4ebf4;
+  font-size: 22px;
+}
