@@ -65,17 +65,17 @@ function getVSSource() {
 }
 
 function getFSSource(fExpr, critExpr) {
-  const fGLSLCode = toGLSL(fExpr);
+  const fGLSL = toGLSL(fExpr, true);
 
   console.log("f(z,c):    " + fExpr);
-  console.log("f GLSL:    " + fGLSLCode);
+  console.log("f GLSL:    " + fGLSL);
 
-  const critGLSLCode = toGLSL(critExpr);
+  const critGLSL = toGLSL(critExpr, false);
 
   console.log("crit(c):   " + critExpr);
-  console.log("crit GLSL: " + critGLSLCode);
+  console.log("crit GLSL: " + critGLSL);
 
-  return `
+  const code = `
     // In and Out variables
     precision highp float;
 
@@ -84,9 +84,84 @@ function getFSSource(fExpr, critExpr) {
     uniform mat4 uProjMatrix;
     uniform mat4 uMobiusMatrix;
 
-    varying vec4 modelPos;
+    varying vec4 modelPos;  
     varying vec4 localPos;
 
+    ${complexGLSL}
+    ${projGLSL}    
+
+    // Function supplied by the user
+    vec4 _user_defined_function(vec4 z, vec4 c) {
+      return ${fGLSL};
+    }
+
+    // Iterate function until it escapes
+    void main(void) {
+      vec4 c = vec4(localPos.xy, 1.0 + localPos.z, 0.0);
+      c = uMobiusMatrix * c;
+      vec4 z = vec4(${critGLSL}, 1.0, 0.0);
+
+      const vec4 infinity = vec4(1.0, 0.0, 0.0, 0.0);
+      
+      gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+      
+      for (int iter = 0; iter < 200; iter++) {
+        if (_pDist(z, infinity) < 1e-3) {
+            float d = _pDist(z, infinity);
+            float depth = 0.5 - 0.5 * cos(
+                3.14 * (float(iter) - log2(-log(d))) / 1024.0
+            );
+            gl_FragColor = texture2D(uColorPalette, vec2(511.0 * depth, 0.5));
+            break;
+        }
+        
+        z = _user_defined_function(z,c);
+      }
+
+      vec2 testVector = modelPos.xy / modelPos.w - uMousePosition.xy;
+      testVector.x *= uProjMatrix[1][1] / uProjMatrix[0][0];
+      if (length(testVector) < 0.01) {
+        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+      }
+    }
+    `;
+
+  console.log(code);
+  return code;
+}
+
+const complexGLSL = `
+    // Complex Addition, Subtraction, and Additive Inverse
+    vec2 _cAdd(vec2 a, vec2 b) {return a + b;}
+    vec2 _cSub(vec2 a, vec2 b) {return a - b;}
+    vec2 _cOpp(vec2 a) {return -a;}
+
+    // Complex Multiplication
+    vec2 _cMul(vec2 a, vec2 b) {
+      return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+    }
+
+    // Complex Division
+    vec2 _cDiv(vec2 a, vec2 b) {
+      return vec2(dot(a, b), a.y * b.x - a.x * b.y) / length(b);
+    }
+
+    // Assumes b is a real number
+    vec2 _cPow(vec2 a, vec2 b) {
+      float powR = pow(length(a), b.x);
+      float theta = atan(a.y, a.x);
+      return vec2(powR * cos(b.x * theta), powR * sin(b.x * theta));
+    }
+
+    // Transcendental functions on the Complex Plane
+    vec2 _sqrt(vec2 a) {
+      float sqrtR = sqrt(length(a));
+      float theta = atan(a.y, a.x);
+      return vec2(sqrtR * cos(theta / 2.0), sqrtR * sin(theta / 2.0));
+    } 
+`;
+
+const projGLSL = `
     // Complex Addition in Projective Coordinates
     vec4 _pAdd(vec4 a, vec4 b) {
       return normalize(vec4(
@@ -132,7 +207,7 @@ function getFSSource(fExpr, critExpr) {
     
     // Complex Multiplicative Inverse in Projective Coordinates
     vec4 _pInv(vec4 a) {return vec4(a.zw, a.xy);}
-    
+
     // Distance in the Complex Projective Line
     // Assumes that both vec4s are normalized
     float _pDist(vec4 a, vec4 b) {
@@ -141,40 +216,4 @@ function getFSSource(fExpr, critExpr) {
         a.x * b.w + a.y * b.z + a.z * b.y + a.w * b.x
       ));
     }
-
-    // Function supplied by the user
-    vec4 _user_defined_function(vec4 z, vec4 c) {
-      return ${fGLSLCode};
-    }
-
-    // Iterate function until it escapes
-    void main(void) {
-      vec4 c = vec4(localPos.xy, 1.0 + localPos.z, 0.0);
-      c = uMobiusMatrix * c;
-      vec4 z = ${critGLSLCode};
-
-      const vec4 infinity = vec4(1.0, 0.0, 0.0, 0.0);
-      
-      gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-      
-      for (int iter = 0; iter < 200; iter++) {
-        if (_pDist(z, infinity) < 1e-3) {
-            float dist = _pDist(z, infinity);
-            float depth = 0.5 - 0.5 * cos(
-                3.14 * (float(iter) - log2(-log(dist))) / 1024.0
-            );
-            gl_FragColor = texture2D(uColorPalette, vec2(511.0 * depth, 0.5));
-            break;
-        }
-        
-        z = _user_defined_function(z,c);
-      }
-
-      vec2 testVector = modelPos.xy / modelPos.w - uMousePosition.xy;
-      testVector.x *= uProjMatrix[1][1] / uProjMatrix[0][0];
-      if (length(testVector) < 0.01) {
-        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-      }
-    }
-    `;
-}
+`;
