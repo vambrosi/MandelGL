@@ -4,7 +4,7 @@ import { initState } from "./init-state.js";
 import { initProgram } from "./init-program.js";
 import { initBuffers } from "./init-buffers.js";
 import { initColorPalette } from "./init-palette.js";
-import { handleMousemove, handleScroll } from "./event-handlers.js";
+import { setEventListeners } from "./event-handlers.js";
 import { drawScene } from "./draw-scene.js";
 
 // Set Menu
@@ -27,6 +27,10 @@ fInput.value = "z^2 + c";
 const critInput = document.querySelector("#critInput");
 critInput.value = "0.0";
 
+const buttons = {
+  reset: document.querySelector("#reset"),
+};
+
 main();
 
 function main() {
@@ -41,22 +45,7 @@ function main() {
 
   // Set State and Event Handlers
   const state = initState();
-
-  gl.canvas.addEventListener("mousedown", (e) => {
-    state.mouse.isDown = true;
-  });
-
-  gl.canvas.addEventListener("wheel", (e) => {
-    handleScroll(e, gl, state);
-  });
-
-  window.addEventListener("mousemove", (e) => {
-    handleMousemove(e, gl, state);
-  });
-
-  window.addEventListener("mouseup", (e) => {
-    state.mouse.isDown = false;
-  });
+  setEventListeners(gl, state, buttons);
 
   // Set clear color to black, fully opaque
   gl.clearColor(0.0, 0.0, 0.0, 1.0);

@@ -1,8 +1,34 @@
 "use strict";
 
-export { handleMousemove, handleScroll };
+export { setEventListeners };
 
 const { mat4, mat3, vec3, vec4 } = glMatrix;
+
+function setEventListeners(gl, state, buttons) {
+  // Set Mouse Events
+  gl.canvas.addEventListener("mousedown", (e) => {
+    state.mouse.isDown = true;
+  });
+
+  gl.canvas.addEventListener("wheel", (e) => {
+    handleScroll(e, gl, state);
+  });
+
+  window.addEventListener("mousemove", (e) => {
+    handleMousemove(e, gl, state);
+  });
+
+  window.addEventListener("mouseup", (e) => {
+    state.mouse.isDown = false;
+  });
+
+  // Set Button Events
+  buttons.reset.addEventListener("click", (e) => {
+    mat4.identity(state.parameterSpace.localMatrix);
+    mat4.identity(state.parameterSpace.invLocalMatrix);
+    mat4.identity(state.parameterSpace.mobiusMatrix);
+  });
+}
 
 function handleMousemove(event, gl, state) {
   const mousePosition = getClipSpaceMousePosition(event, gl.canvas);
@@ -61,7 +87,7 @@ function handleScroll(event, gl, state) {
   mutateToProjective(southPole);
 
   const scale = 1.0 + event.deltaY * 0.001;
-  
+
   updateMobius(state.parameterSpace.mobiusMatrix, northPole, southPole, scale);
 }
 

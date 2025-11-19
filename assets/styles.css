@@ -100,3 +100,21 @@ button {
 .showMenu {
   transform: translateX(0);
 }
+
+#otherButtonsContainer {
+  position: fixed;
+  top: 60px;
+  left: 15px;
+}
+
+.otherButtons {
+  z-index: 50;
+  padding: 5px;
+  margin: 10px 0px 10px 0px;
+  border: black solid 1px;
+  background: #f4ebf4;
+  cursor: pointer;
+  display: block;
+}
+
+
