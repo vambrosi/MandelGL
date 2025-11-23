@@ -153,7 +153,7 @@ const complexGLSL = `
 
     // Complex Division
     vec2 _cDiv(vec2 a, vec2 b) {
-      return vec2(dot(a, b), a.y * b.x - a.x * b.y) / length(b);
+      return vec2(dot(a, b), a.y * b.x - a.x * b.y) / (b.x * b.x + b.y * b.y);
     }
 
     // Assumes b is a real number
