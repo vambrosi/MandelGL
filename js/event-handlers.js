@@ -63,11 +63,15 @@ function setMenuEvents() {
     }
   });
 
+  const maxIterInput = document.querySelector("#maxIter");
+  maxIterInput.value = "100";
+
   return {
     fInput: fInput,
     critInput: critInput,
     cInput: cInput,
     parameterRadio: parameterRadio,
+    maxIterInput: maxIterInput,
     compileButton: compileButton,
   };
 }

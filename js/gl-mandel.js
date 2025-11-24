@@ -36,12 +36,7 @@ function main(menuItems, buttons) {
   gl.clear(gl.COLOR_BUFFER_BIT);
 
   // Get initial functions
-  const settings = {
-    fExpr: menuItems.fInput.value,
-    critExpr: menuItems.critInput.value,
-    cExpr: menuItems.cInput.value,
-    isParameter: menuItems.parameterRadio.checked,
-  };
+  const settings = getSettings(menuItems);
 
   // Compile initial shaders and set uniforms
   // By default it plots the parameter plane
@@ -50,12 +45,7 @@ function main(menuItems, buttons) {
 
   // Change function after start
   menuItems.compileButton.addEventListener("click", (e) => {
-    const settings = {
-      fExpr: menuItems.fInput.value,
-      critExpr: menuItems.critInput.value,
-      cExpr: menuItems.cInput.value,
-      isParameter: menuItems.parameterRadio.checked,
-    };
+    const settings = getSettings(menuItems);
 
     const shaderProgram = initProgram(gl, settings);
     programInfo = setProgramInfo(gl, shaderProgram);
@@ -94,6 +84,22 @@ function main(menuItems, buttons) {
   }
 
   requestAnimationFrame(render);
+}
+
+function getSettings(menuItems) {
+  // maxIter has to be printed without decimals and be > 0
+  const maxIterNumber = Math.max(
+    Number.parseInt(menuItems.maxIterInput.value),
+    1
+  );
+
+  return {
+    fExpr: menuItems.fInput.value,
+    critExpr: menuItems.critInput.value,
+    cExpr: menuItems.cInput.value,
+    isParameter: menuItems.parameterRadio.checked,
+    maxIterExpr: maxIterNumber,
+  };
 }
 
 function setProgramInfo(gl, shaderProgram) {

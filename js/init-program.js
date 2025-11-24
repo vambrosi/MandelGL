@@ -114,7 +114,7 @@ function getFSSource(settings) {
       
       gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
       
-      for (int iter = 0; iter < 100; iter++) {
+      for (int iter = 0; iter < ${settings.maxIterExpr}; iter++) {
         if (_pDist(z, infinity) < 1e-3) {
             float d = _pDist(z, infinity);
             float depth = fract((float(iter) - log2(-log(d))) / 64.0);
