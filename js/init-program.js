@@ -69,12 +69,12 @@ function getFSSource(settings) {
 
   let initialValueCode;
   if (settings.isParameter) {
-    const critGLSL = toGLSL(settings.critExpr, false);
+    const critGLSL = toGLSL(settings.critExpr, true);
 
     initialValueCode = `
       vec4 c = vec4(localPos.xy, 1.0 + localPos.z, 0.0);
       c = uMobiusMatrix * c;
-      vec4 z = vec4(${critGLSL}, 1.0, 0.0);
+      vec4 z = ${critGLSL};
     `;
   } else {
     const cGLSL = toGLSL(settings.cExpr, false);
@@ -114,7 +114,7 @@ function getFSSource(settings) {
       
       gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
       
-      for (int iter = 0; iter < 200; iter++) {
+      for (int iter = 0; iter < 100; iter++) {
         if (_pDist(z, infinity) < 1e-3) {
             float d = _pDist(z, infinity);
             float depth = fract((float(iter) - log2(-log(d))) / 64.0);
