@@ -39,9 +39,6 @@ function setMenuEvents() {
   const exampleSelect = document.querySelector("#exampleSelect");
   exampleSelect.value = "mandel";
 
-  const parameterRadio = document.querySelector("#parameterRadio");
-  parameterRadio.checked = true;
-
   exampleSelect.addEventListener("change", (e) => {
     switch (e.target.value) {
       case "mandel":
@@ -70,7 +67,6 @@ function setMenuEvents() {
     fInput: fInput,
     critInput: critInput,
     cInput: cInput,
-    parameterRadio: parameterRadio,
     maxIterInput: maxIterInput,
     compileButton: compileButton,
   };

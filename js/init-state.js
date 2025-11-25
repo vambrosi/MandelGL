@@ -19,11 +19,16 @@ function initState() {
     parameterSpace: {
       localMatrix: mat4.create(),
       invLocalMatrix: mat4.create(),
-
       modelMatrix: mat4.create(),
-
       rotationAxis: vec3.create(),
+      mobiusMatrix: mat4.create(),
+    },
 
+    dynamicalSpace: {
+      localMatrix: mat4.create(),
+      invLocalMatrix: mat4.create(),
+      modelMatrix: mat4.create(),
+      rotationAxis: vec3.create(),
       mobiusMatrix: mat4.create(),
     },
 
@@ -37,7 +42,13 @@ function initState() {
   mat4.translate(
     state.parameterSpace.modelMatrix,
     state.parameterSpace.modelMatrix,
-    [0.0, 0.0, -3]
+    [0, 0, -3]
+  );
+
+  mat4.translate(
+    state.dynamicalSpace.modelMatrix,
+    state.dynamicalSpace.modelMatrix,
+    [-4, -2, -9]
   );
 
   return state;

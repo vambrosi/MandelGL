@@ -23,18 +23,36 @@ function drawScene(gl, programInfo, buffers, state) {
   const fieldOfView = (45 * Math.PI) / 180; // in radians
   const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
   const zNear = 1.0;
-  const zFar = 5.0;
+  const zFar = 10.0;
 
   mat4.perspective(state.world.projMatrix, fieldOfView, aspect, zNear, zFar);
 
-  // Set vertex shader attributes and buffers
-  setAttributesAndBuffers(gl, buffers, programInfo);
+  // Draw parameter space
+  setAttributesAndBuffers(gl, buffers, programInfo.parameter);
+  gl.useProgram(programInfo.parameter.program);
+  setUniforms(
+    gl,
+    programInfo.parameter.uLocations,
+    state.parameterSpace,
+    state
+  );
 
-  // Tell WebGL to use our program when drawing
-  gl.useProgram(programInfo.program);
+  {
+    const vertexCount = buffers.vertexCount;
+    const type = gl.UNSIGNED_SHORT;
+    const offset = 0;
+    gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
+  }
 
-  // Set the shader uniforms
-  setUniforms(gl, programInfo.uLocations, state);
+  // Draw dynamical space
+  setAttributesAndBuffers(gl, buffers, programInfo.dynamical);
+  gl.useProgram(programInfo.dynamical.program);
+  setUniforms(
+    gl,
+    programInfo.dynamical.uLocations,
+    state.dynamicalSpace,
+    state
+  );
 
   {
     const vertexCount = buffers.vertexCount;
@@ -64,17 +82,9 @@ function setAttributesAndBuffers(gl, buffers, programInfo) {
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
 }
 
-function setUniforms(gl, locations, state) {
-  gl.uniformMatrix4fv(
-    locations.localMatrix,
-    false,
-    state.parameterSpace.localMatrix
-  );
-  gl.uniformMatrix4fv(
-    locations.modelMatrix,
-    false,
-    state.parameterSpace.modelMatrix
-  );
+function setUniforms(gl, locations, spaceState, state) {
+  gl.uniformMatrix4fv(locations.localMatrix, false, spaceState.localMatrix);
+  gl.uniformMatrix4fv(locations.modelMatrix, false, spaceState.modelMatrix);
 
   const mouseV = vec3.fromValues(state.mouse.x, state.mouse.y, -2.5);
 
@@ -82,11 +92,7 @@ function setUniforms(gl, locations, state) {
   gl.uniformMatrix4fv(locations.projMatrix, false, state.world.projMatrix);
   gl.uniform3fv(locations.mousePosition, mouseV);
 
-  gl.uniformMatrix4fv(
-    locations.mobiusMatrix,
-    false,
-    state.parameterSpace.mobiusMatrix
-  );
+  gl.uniformMatrix4fv(locations.mobiusMatrix, false, spaceState.mobiusMatrix);
 }
 
 function resizeCanvasToDisplaySize(gl) {

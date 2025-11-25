@@ -6,26 +6,53 @@ import { toGLSL } from "./parser.js";
 
 function initProgram(gl, settings) {
   const vsSource = getVSSource();
-  const fsSource = getFSSource(settings);
+  const fsSourceParameter = getFSSource(true, settings);
 
   const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-  const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+  const fragmentShaderParameter = loadShader(
+    gl,
+    gl.FRAGMENT_SHADER,
+    fsSourceParameter
+  );
 
   // Create the shader program
-
-  const program = gl.createProgram();
-  gl.attachShader(program, vertexShader);
-  gl.attachShader(program, fragmentShader);
-  gl.linkProgram(program);
+  const programParameter = gl.createProgram();
+  gl.attachShader(programParameter, vertexShader);
+  gl.attachShader(programParameter, fragmentShaderParameter);
+  gl.linkProgram(programParameter);
 
   // If creating the shader program failed, alert
-
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    alert(`Unable to initialize program: ${gl.getProgramInfoLog(program)}`);
+  if (!gl.getProgramParameter(programParameter, gl.LINK_STATUS)) {
+    alert(
+      `Unable to initialize program: ${gl.getProgramInfoLog(programParameter)}`
+    );
     return null;
   }
 
-  return program;
+  // Same for dynamical space
+  const fsSourceDynamical = getFSSource(false, settings);
+  const fragmentShaderDynamical = loadShader(
+    gl,
+    gl.FRAGMENT_SHADER,
+    fsSourceDynamical
+  );
+
+  const programDynamical = gl.createProgram();
+  gl.attachShader(programDynamical, vertexShader);
+  gl.attachShader(programDynamical, fragmentShaderDynamical);
+  gl.linkProgram(programDynamical);
+
+  if (!gl.getProgramParameter(programDynamical, gl.LINK_STATUS)) {
+    alert(
+      `Unable to initialize program: ${gl.getProgramInfoLog(programDynamical)}`
+    );
+    return null;
+  }
+
+  return {
+    parameter: programParameter,
+    dynamical: programDynamical
+  };
 }
 
 function loadShader(gl, type, source) {
@@ -64,11 +91,11 @@ function getVSSource() {
     }`;
 }
 
-function getFSSource(settings) {
+function getFSSource(isParameter, settings) {
   const fGLSL = toGLSL(settings.fExpr, true);
 
   let initialValueCode;
-  if (settings.isParameter) {
+  if (isParameter) {
     const critGLSL = toGLSL(settings.critExpr, true);
 
     initialValueCode = `

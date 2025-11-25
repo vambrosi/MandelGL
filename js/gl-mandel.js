@@ -40,15 +40,19 @@ function main(menuItems, buttons) {
 
   // Compile initial shaders and set uniforms
   // By default it plots the parameter plane
-  const shaderProgram = initProgram(gl, settings);
-  let programInfo = setProgramInfo(gl, shaderProgram);
+  const shaderPrograms = initProgram(gl, settings);
+  const programInfo = {
+    parameter: setProgramInfo(gl, shaderPrograms.parameter),
+    dynamical: setProgramInfo(gl, shaderPrograms.dynamical),
+  };
 
   // Change function after start
   menuItems.compileButton.addEventListener("click", (e) => {
     const settings = getSettings(menuItems);
+    const shaderPrograms = initProgram(gl, settings);
 
-    const shaderProgram = initProgram(gl, settings);
-    programInfo = setProgramInfo(gl, shaderProgram);
+    programInfo.parameter = setProgramInfo(gl, shaderPrograms.parameter);
+    programInfo.dynamical = setProgramInfo(gl, shaderPrograms.dynamical);
   });
 
   // Set the input for the shaders
@@ -97,7 +101,6 @@ function getSettings(menuItems) {
     fExpr: menuItems.fInput.value,
     critExpr: menuItems.critInput.value,
     cExpr: menuItems.cInput.value,
-    isParameter: menuItems.parameterRadio.checked,
     maxIterExpr: maxIterNumber,
   };
 }
