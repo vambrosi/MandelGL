@@ -19,7 +19,9 @@
 
   <body>
     <canvas id="gl-canvas"></canvas>
-    <div id="frame-rate-container"><span id="frame-rate"></span> FPS</div>
+    <div id="frame-rate-container">
+      <span id="frame-rate"></span> FPS <span id="mouse-location"></span>
+    </div>
 
     <ul class="menu">
       <li class="menuTitle collapseMenu">Commands</li>
@@ -36,7 +38,7 @@
         <span>Pick one example: </span>
         <div class="shortcut">
           <select id="exampleSelect" class="expand" name="Families of maps">
-            <option value="mandel" selected>Quadratic family</option>
+            <option value="quadratic" selected>Quadratic family</option>
             <option value="per2">Per₂</option>
             <option value="per3_0">Per₃(0)</option>
             <option value="per4_0">Per₄(0)</option>
@@ -83,8 +85,14 @@
       <i class="closeIcon material-icons" style="display: none">close</i>
     </button>
 
-    <div id="otherButtonsContainer">
-      <button id="reset" class="otherButtons" title="Reset View">
+    <div id="topButtonsContainer">
+      <button id="resetLarge" class="otherButtons" title="Reset Large View">
+        <i class="material-icons" style="display: block">cached</i>
+      </button>
+    </div>
+
+    <div id="bottomButtonsContainer">
+      <button id="resetSmall" class="otherButtons" title="Reset Small View">
         <i class="material-icons" style="display: block">cached</i>
       </button>
     </div>

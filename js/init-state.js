@@ -13,7 +13,7 @@ function initState() {
       dy: 0.0,
       lastX: 0.0,
       lastY: 0.0,
-      isDown: false,
+      lastClick: "none",
     },
 
     parameterSpace: {
@@ -36,6 +36,7 @@ function initState() {
       deltaTime: 0,
       viewMatrix: mat4.create(),
       projMatrix: mat4.create(),
+      largeType: "parameter",
     },
   };
 

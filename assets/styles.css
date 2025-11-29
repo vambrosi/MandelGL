@@ -103,9 +103,15 @@ button {
   transform: translateX(0);
 }
 
-#otherButtonsContainer {
+#topButtonsContainer {
   position: fixed;
   top: 60px;
+  left: 15px;
+}
+
+#bottomButtonsContainer {
+  position: fixed;
+  bottom: 60px;
   left: 15px;
 }
 

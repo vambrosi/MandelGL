@@ -12,7 +12,8 @@ const menuItems = setMenuEvents();
 
 // Get references to the other buttons
 const buttons = {
-  reset: document.querySelector("#reset"),
+  resetLarge: document.querySelector("#resetLarge"),
+  resetSmall: document.querySelector("#resetSmall"),
 };
 
 main(menuItems, buttons);
