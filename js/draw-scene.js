@@ -23,17 +23,17 @@ function drawScene(gl, programInfo, buffers, state) {
   const fieldOfView = (45 * Math.PI) / 180; // in radians
   const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
   const zNear = 1.0;
-  const zFar = 10.0;
+  const zFar = 20.0;
 
   mat4.perspective(state.world.projMatrix, fieldOfView, aspect, zNear, zFar);
 
-  // Draw parameter space
-  setAttributesAndBuffers(gl, buffers, programInfo.parameter);
-  gl.useProgram(programInfo.parameter.program);
+  // Draw large view
+  setAttributesAndBuffers(gl, buffers, programInfo.largeView);
+  gl.useProgram(programInfo.largeView.program);
   setUniforms(
     gl,
-    programInfo.parameter.uLocations,
-    state.parameterSpace,
+    programInfo.largeView.uLocations,
+    state.largeView,
     state
   );
 
@@ -45,12 +45,12 @@ function drawScene(gl, programInfo, buffers, state) {
   }
 
   // Draw dynamical space
-  setAttributesAndBuffers(gl, buffers, programInfo.dynamical);
-  gl.useProgram(programInfo.dynamical.program);
+  setAttributesAndBuffers(gl, buffers, programInfo.smallView);
+  gl.useProgram(programInfo.smallView.program);
   setUniforms(
     gl,
-    programInfo.dynamical.uLocations,
-    state.dynamicalSpace,
+    programInfo.smallView.uLocations,
+    state.smallView,
     state
   );
 

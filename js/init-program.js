@@ -4,54 +4,55 @@ export { initProgram };
 
 import { toGLSL } from "./parser.js";
 
-function initProgram(gl, settings) {
+function initProgram(gl, state, settings) {
+  // Create GLSL code for large view
   const vsSource = getVSSource();
-  const fsSourceParameter = getFSSource(true, settings);
+  const fsSourceLargeView = getFSSource(true, state, settings);
 
   const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-  const fragmentShaderParameter = loadShader(
+  const fragmentShaderLargeView = loadShader(
     gl,
     gl.FRAGMENT_SHADER,
-    fsSourceParameter
+    fsSourceLargeView
   );
 
   // Create the shader program
-  const programParameter = gl.createProgram();
-  gl.attachShader(programParameter, vertexShader);
-  gl.attachShader(programParameter, fragmentShaderParameter);
-  gl.linkProgram(programParameter);
+  const programLargeView = gl.createProgram();
+  gl.attachShader(programLargeView, vertexShader);
+  gl.attachShader(programLargeView, fragmentShaderLargeView);
+  gl.linkProgram(programLargeView);
 
   // If creating the shader program failed, alert
-  if (!gl.getProgramParameter(programParameter, gl.LINK_STATUS)) {
+  if (!gl.getProgramParameter(programLargeView, gl.LINK_STATUS)) {
     alert(
-      `Unable to initialize program: ${gl.getProgramInfoLog(programParameter)}`
+      `Unable to initialize program: ${gl.getProgramInfoLog(programLargeView)}`
     );
     return null;
   }
 
-  // Same for dynamical space
-  const fsSourceDynamical = getFSSource(false, settings);
-  const fragmentShaderDynamical = loadShader(
+  // Same for small view
+  const fsSourceSmallView = getFSSource(false, state, settings);
+  const fragmentShaderSmallView = loadShader(
     gl,
     gl.FRAGMENT_SHADER,
-    fsSourceDynamical
+    fsSourceSmallView
   );
 
-  const programDynamical = gl.createProgram();
-  gl.attachShader(programDynamical, vertexShader);
-  gl.attachShader(programDynamical, fragmentShaderDynamical);
-  gl.linkProgram(programDynamical);
+  const programSmallView = gl.createProgram();
+  gl.attachShader(programSmallView, vertexShader);
+  gl.attachShader(programSmallView, fragmentShaderSmallView);
+  gl.linkProgram(programSmallView);
 
-  if (!gl.getProgramParameter(programDynamical, gl.LINK_STATUS)) {
+  if (!gl.getProgramParameter(programSmallView, gl.LINK_STATUS)) {
     alert(
-      `Unable to initialize program: ${gl.getProgramInfoLog(programDynamical)}`
+      `Unable to initialize program: ${gl.getProgramInfoLog(programSmallView)}`
     );
     return null;
   }
 
   return {
-    parameter: programParameter,
-    dynamical: programDynamical
+    largeView: programLargeView,
+    smallView: programSmallView,
   };
 }
 
@@ -91,11 +92,11 @@ function getVSSource() {
     }`;
 }
 
-function getFSSource(isParameter, settings) {
+function getFSSource(isLargeView, state, settings) {
   const fGLSL = toGLSL(settings.fExpr, true);
 
   let initialValueCode;
-  if (isParameter) {
+  if (isLargeView == state.world.largeIsParameter) {
     const critGLSL = toGLSL(settings.critExpr, true);
 
     initialValueCode = `

@@ -13,6 +13,7 @@ const menuItems = setMenuEvents();
 // Get references to the other buttons
 const buttons = {
   resetLarge: document.querySelector("#resetLarge"),
+  switchViews: document.querySelector("#switchViews"),
   resetSmall: document.querySelector("#resetSmall"),
 };
 
@@ -41,19 +42,19 @@ function main(menuItems, buttons) {
 
   // Compile initial shaders and set uniforms
   // By default it plots the parameter plane
-  const shaderPrograms = initProgram(gl, settings);
+  const shaderPrograms = initProgram(gl, state, settings);
   const programInfo = {
-    parameter: setProgramInfo(gl, shaderPrograms.parameter),
-    dynamical: setProgramInfo(gl, shaderPrograms.dynamical),
+    largeView: setProgramInfo(gl, shaderPrograms.largeView),
+    smallView: setProgramInfo(gl, shaderPrograms.smallView),
   };
 
   // Change function after start
   menuItems.compileButton.addEventListener("click", (e) => {
     const settings = getSettings(menuItems);
-    const shaderPrograms = initProgram(gl, settings);
+    const shaderPrograms = initProgram(gl, state, settings);
 
-    programInfo.parameter = setProgramInfo(gl, shaderPrograms.parameter);
-    programInfo.dynamical = setProgramInfo(gl, shaderPrograms.dynamical);
+    programInfo.largeView = setProgramInfo(gl, shaderPrograms.largeView);
+    programInfo.smallView = setProgramInfo(gl, shaderPrograms.smallView);
   });
 
   // Set the input for the shaders

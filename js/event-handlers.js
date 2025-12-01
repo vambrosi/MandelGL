@@ -35,7 +35,7 @@ function setMenuEvents() {
 
   // Default c for the Parameter plane is 0.0;
   const cInput = document.querySelector("#cInput");
-  cInput.value = "0.0";
+  cInput.value = "i";
 
   const exampleSelect = document.querySelector("#exampleSelect");
   exampleSelect.value = "quadratic";
@@ -94,15 +94,21 @@ function setGLEvents(gl, state, buttons) {
 
   // Set Button Events
   buttons.resetLarge.addEventListener("click", (e) => {
-    mat4.identity(state.parameterSpace.localMatrix);
-    mat4.identity(state.parameterSpace.invLocalMatrix);
-    mat4.identity(state.parameterSpace.mobiusMatrix);
+    mat4.identity(state.largeView.localMatrix);
+    mat4.identity(state.largeView.invLocalMatrix);
+    mat4.identity(state.largeView.mobiusMatrix);
   });
 
   buttons.resetSmall.addEventListener("click", (e) => {
-    mat4.identity(state.dynamicalSpace.localMatrix);
-    mat4.identity(state.dynamicalSpace.invLocalMatrix);
-    mat4.identity(state.dynamicalSpace.mobiusMatrix);
+    mat4.identity(state.smallView.localMatrix);
+    mat4.identity(state.smallView.invLocalMatrix);
+    mat4.identity(state.smallView.mobiusMatrix);
+  });
+
+  buttons.switchViews.addEventListener("click", (e) => {
+    state.world.largeIsParameter = !state.world.largeIsParameter;
+    const clickEvent = new Event("click");
+    myButton.dispatchEvent(clickEvent);
   });
 }
 
@@ -123,6 +129,7 @@ function handleMousedown(_, gl, state) {
 
 function handleMousemove(event, gl, state) {
   const mousePosition = getClipSpaceMousePosition(event, gl.canvas);
+  const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
 
   state.mouse.x = mousePosition.x;
   state.mouse.y = mousePosition.y;
@@ -131,13 +138,9 @@ function handleMousemove(event, gl, state) {
   state.mouse.dy = state.mouse.y - state.mouse.lastY;
 
   if (state.mouse.lastClick == "small") {
-    state.world.largeType == "parameter"
-      ? rotateLocal(state.dynamicalSpace, state.mouse, 3.0)
-      : rotateLocal(state.parameterSpace, state.mouse, 1.5);
+    rotateLocal(state.smallView, state.mouse, 3.7, aspect);
   } else if (state.mouse.lastClick == "large") {
-    state.world.largeType == "parameter"
-      ? rotateLocal(state.parameterSpace, state.mouse, 1.5)
-      : rotateLocal(state.dynamicalSpace, state.mouse, 3.0);
+    rotateLocal(state.largeView, state.mouse, 1.0, aspect);
   }
 
   state.mouse.lastX = state.mouse.x;
@@ -152,8 +155,8 @@ function handleScroll(event, gl, state) {
   const southPole = vec4.fromValues(0, 0, -1, 0);
 
   // Reverse the rotation to see where was this point originally
-  vec4.transformMat4(northPole, northPole, state.parameterSpace.invLocalMatrix);
-  vec4.transformMat4(southPole, southPole, state.parameterSpace.invLocalMatrix);
+  vec4.transformMat4(northPole, northPole, state.largeView.invLocalMatrix);
+  vec4.transformMat4(southPole, southPole, state.largeView.invLocalMatrix);
 
   // Get the projective equivalent
   mutateToProjective(northPole);
@@ -161,7 +164,7 @@ function handleScroll(event, gl, state) {
 
   const scale = 1.0 + event.deltaY * 0.001;
 
-  updateMobius(state.parameterSpace.mobiusMatrix, northPole, southPole, scale);
+  updateMobius(state.largeView.mobiusMatrix, northPole, southPole, scale);
 }
 
 function updateMobius(mobius, pt1, pt2, scale) {
@@ -251,8 +254,12 @@ function nearLargeSphere(mouseState, aspect) {
   return sqDist(aspect * mouseState.x, mouseState.y, 0, 0) < r2;
 }
 
-function rotateLocal(spaceState, mouseState, scale) {
-  vec3.copy(spaceState.rotationAxis, [-mouseState.dy, mouseState.dx, 0]);
+function rotateLocal(spaceState, mouseState, scale, aspect) {
+  vec3.copy(spaceState.rotationAxis, [
+    -mouseState.dy,
+    aspect * mouseState.dx,
+    0,
+  ]);
 
   vec3.transformMat4(
     spaceState.rotationAxis,

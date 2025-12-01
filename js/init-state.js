@@ -2,7 +2,7 @@
 
 export { initState };
 
-const { mat4, mat3, vec3 } = glMatrix;
+const { mat4, mat3, vec3, quat } = glMatrix;
 
 function initState() {
   const state = {
@@ -16,7 +16,7 @@ function initState() {
       lastClick: "none",
     },
 
-    parameterSpace: {
+    largeView: {
       localMatrix: mat4.create(),
       invLocalMatrix: mat4.create(),
       modelMatrix: mat4.create(),
@@ -24,7 +24,7 @@ function initState() {
       mobiusMatrix: mat4.create(),
     },
 
-    dynamicalSpace: {
+    smallView: {
       localMatrix: mat4.create(),
       invLocalMatrix: mat4.create(),
       modelMatrix: mat4.create(),
@@ -36,20 +36,35 @@ function initState() {
       deltaTime: 0,
       viewMatrix: mat4.create(),
       projMatrix: mat4.create(),
-      largeType: "parameter",
+      largeIsParameter: false,
     },
   };
 
   mat4.translate(
-    state.parameterSpace.modelMatrix,
-    state.parameterSpace.modelMatrix,
+    state.largeView.modelMatrix,
+    state.largeView.modelMatrix,
     [0, 0, -3]
   );
 
   mat4.translate(
-    state.dynamicalSpace.modelMatrix,
-    state.dynamicalSpace.modelMatrix,
-    [-4, -2, -9]
+    state.smallView.modelMatrix,
+    state.smallView.modelMatrix,
+    [0, 0, -10]
+  );
+
+  // Shift small sphere to lower left corner
+  // while still facing the camera.
+  const q = quat.create();
+  quat.fromEuler(q, -11.5, 24, 0);
+
+  const t = vec3.fromValues(0, 0, 0);
+  const m = mat4.create();
+  mat4.fromRotationTranslation(m, q, t);
+
+  mat4.mul(
+    state.smallView.modelMatrix,
+    m,
+    state.smallView.modelMatrix,
   );
 
   return state;
