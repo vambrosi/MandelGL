@@ -1,25 +1,12 @@
 "use strict";
 
 import { initState } from "./init-state.js";
-import { initProgram } from "./init-program.js";
-import { initBuffers } from "./init-buffers.js";
-import { initColorPalette } from "./init-palette.js";
-import { setGLEvents, setMenuEvents } from "./event-handlers.js";
+import { setEvents } from "./event-handlers.js";
 import { drawScene } from "./draw-scene.js";
 
-// Set Menu button, events, and default settings
-const menuItems = setMenuEvents();
+main();
 
-// Get references to the other buttons
-const buttons = {
-  resetLarge: document.querySelector("#resetLarge"),
-  switchViews: document.querySelector("#switchViews"),
-  resetSmall: document.querySelector("#resetSmall"),
-};
-
-main(menuItems, buttons);
-
-function main(menuItems, buttons) {
+function main() {
   const canvas = document.querySelector("#gl-canvas");
   const gl = canvas.getContext("webgl");
 
@@ -29,37 +16,22 @@ function main(menuItems, buttons) {
     return;
   }
 
-  // Set State and Event Handlers
-  const state = initState();
-  setGLEvents(gl, state, buttons);
-
-  // Set clear color to black, fully opaque
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  // Set clear color to gray, fully opaque
+  gl.clearColor(0.2, 0.2, 0.2, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-  // Get initial functions
-  const settings = getSettings(menuItems);
+  /*
+    The state variable below contains all information necessary to draw frames
+    on the WebGL canvas. It serves as a message passaging container to relay
+    user input to the render loop. All user interactions trigger events created
+    in setEvents, and those events make changes on the state variable.
+    
+    setEvents also sets default settings and calls state.updateProgram for the
+    first time. That will create the default shaders for the render loop.
+  */
 
-  // Compile initial shaders and set uniforms
-  // By default it plots the parameter plane
-  const shaderPrograms = initProgram(gl, state, settings);
-  const programInfo = {
-    largeView: setProgramInfo(gl, shaderPrograms.largeView),
-    smallView: setProgramInfo(gl, shaderPrograms.smallView),
-  };
-
-  // Change function after start
-  menuItems.compileButton.addEventListener("click", (e) => {
-    const settings = getSettings(menuItems);
-    const shaderPrograms = initProgram(gl, state, settings);
-
-    programInfo.largeView = setProgramInfo(gl, shaderPrograms.largeView);
-    programInfo.smallView = setProgramInfo(gl, shaderPrograms.smallView);
-  });
-
-  // Set the input for the shaders
-  const buffers = initBuffers(gl, 128, 64);
-  const colorPalette = initColorPalette(gl);
+  const state = initState(gl);
+  setEvents(gl, state);
 
   // Start render loop
   let then = 0;
@@ -84,43 +56,10 @@ function main(menuItems, buttons) {
       elapsedTime = 0;
     }
 
-    drawScene(gl, programInfo, buffers, state);
+    drawScene(gl, state);
 
     requestAnimationFrame(render);
   }
 
   requestAnimationFrame(render);
-}
-
-function getSettings(menuItems) {
-  // maxIter has to be printed without decimals and be > 0
-  const maxIterNumber = Math.max(
-    Number.parseInt(menuItems.maxIterInput.value),
-    1
-  );
-
-  return {
-    fExpr: menuItems.fInput.value,
-    critExpr: menuItems.critInput.value,
-    cExpr: menuItems.cInput.value,
-    maxIterExpr: maxIterNumber,
-  };
-}
-
-function setProgramInfo(gl, shaderProgram) {
-  return {
-    program: shaderProgram,
-    attribLocations: {
-      aPosition: gl.getAttribLocation(shaderProgram, "aPosition"),
-    },
-    uLocations: {
-      mousePosition: gl.getUniformLocation(shaderProgram, "uMousePosition"),
-      mobiusMatrix: gl.getUniformLocation(shaderProgram, "uMobiusMatrix"),
-      localMatrix: gl.getUniformLocation(shaderProgram, "uLocalMatrix"),
-      modelMatrix: gl.getUniformLocation(shaderProgram, "uModelMatrix"),
-      viewMatrix: gl.getUniformLocation(shaderProgram, "uViewMatrix"),
-      projMatrix: gl.getUniformLocation(shaderProgram, "uProjMatrix"),
-      colorPalette: gl.getUniformLocation(shaderProgram, "uColorPalette"),
-    },
-  };
 }

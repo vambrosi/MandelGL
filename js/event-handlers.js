@@ -1,11 +1,30 @@
 "use strict";
 
-export { setGLEvents, setMenuEvents };
+export { setEvents };
 
-const { mat4, mat3, vec3, vec4 } = glMatrix;
+const { mat4, quat, vec3, vec4 } = glMatrix;
 const mouseSpan = document.querySelector("#mouse-location");
 
-function setMenuEvents() {
+function setEvents(gl, state) {
+  // Set Mouse Events
+  gl.canvas.addEventListener("mousedown", (e) => {
+    handleMousedown(e, gl, state);
+  });
+
+  gl.canvas.addEventListener("wheel", (e) => {
+    handleScroll(e, gl, state);
+  });
+
+  window.addEventListener("mousemove", (e) => {
+    handleMousemove(e, gl, state);
+  });
+
+  window.addEventListener("mouseup", (_) => {
+    state.mouse.lastClick = "none";
+    mouseSpan.textContent = "";
+  });
+
+  // Set Menu Events
   const menu = document.querySelector(".menu");
   const hamburger = document.querySelector(".hamburger");
   const closeIcon = document.querySelector(".closeIcon");
@@ -23,8 +42,6 @@ function setMenuEvents() {
     }
   });
 
-  const compileButton = document.querySelector("#compileButton");
-
   // Default dynamical system to plot f(z,c) = z^2 + c
   const fInput = document.querySelector("#fInput");
   fInput.value = "z^2 + c";
@@ -33,7 +50,7 @@ function setMenuEvents() {
   const critInput = document.querySelector("#critInput");
   critInput.value = "0.0";
 
-  // Default c for the Parameter plane is 0.0;
+  // Default c for the Parameter plane is i;
   const cInput = document.querySelector("#cInput");
   cInput.value = "i";
 
@@ -64,52 +81,40 @@ function setMenuEvents() {
   const maxIterInput = document.querySelector("#maxIter");
   maxIterInput.value = "100";
 
-  return {
+  const menuItems = {
     fInput: fInput,
     critInput: critInput,
     cInput: cInput,
     maxIterInput: maxIterInput,
-    compileButton: compileButton,
   };
-}
 
-function setGLEvents(gl, state, buttons) {
-  // Set Mouse Events
-  gl.canvas.addEventListener("mousedown", (e) => {
-    handleMousedown(e, gl, state);
-  });
-
-  gl.canvas.addEventListener("wheel", (e) => {
-    handleScroll(e, gl, state);
-  });
-
-  window.addEventListener("mousemove", (e) => {
-    handleMousemove(e, gl, state);
-  });
-
-  window.addEventListener("mouseup", (_) => {
-    state.mouse.lastClick = "none";
-    mouseSpan.textContent = "";
+  const compileButton = document.querySelector("#compileButton");
+  compileButton.addEventListener("click", (e) => {
+    state.updateProgram(gl, menuItems);
   });
 
   // Set Button Events
-  buttons.resetLarge.addEventListener("click", (e) => {
-    mat4.identity(state.largeView.localMatrix);
-    mat4.identity(state.largeView.invLocalMatrix);
-    mat4.identity(state.largeView.mobiusMatrix);
+  const resetLarge = document.querySelector("#resetLarge");
+  resetLarge.addEventListener("click", (e) => {
+    mat4.identity(state.dynamicalView.localMatrix);
+    mat4.identity(state.dynamicalView.invLocalMatrix);
+    mat4.identity(state.dynamicalView.mobiusMatrix);
   });
 
-  buttons.resetSmall.addEventListener("click", (e) => {
-    mat4.identity(state.smallView.localMatrix);
-    mat4.identity(state.smallView.invLocalMatrix);
-    mat4.identity(state.smallView.mobiusMatrix);
+  const resetSmall = document.querySelector("#resetSmall");
+  resetSmall.addEventListener("click", (e) => {
+    mat4.identity(state.parameterView.localMatrix);
+    mat4.identity(state.parameterView.invLocalMatrix);
+    mat4.identity(state.parameterView.mobiusMatrix);
   });
 
-  buttons.switchViews.addEventListener("click", (e) => {
-    state.world.largeIsParameter = !state.world.largeIsParameter;
-    const clickEvent = new Event("click");
-    myButton.dispatchEvent(clickEvent);
+  const switchViews = document.querySelector("#switchViews");
+  switchViews.addEventListener("click", (e) => {
+    handleSwitchView(state);
   });
+
+  // Compile the first program with the default settings
+  state.updateProgram(gl, menuItems);
 }
 
 function handleMousedown(_, gl, state) {
@@ -138,9 +143,17 @@ function handleMousemove(event, gl, state) {
   state.mouse.dy = state.mouse.y - state.mouse.lastY;
 
   if (state.mouse.lastClick == "small") {
-    rotateLocal(state.smallView, state.mouse, 3.7, aspect);
+    const smallView = state.world.largeIsParameter
+      ? state.dynamicalView
+      : state.parameterView;
+
+    rotateLocal(smallView, state.mouse, 3.7, aspect);
   } else if (state.mouse.lastClick == "large") {
-    rotateLocal(state.largeView, state.mouse, 1.0, aspect);
+    const largeView = state.world.largeIsParameter
+      ? state.parameterView
+      : state.dynamicalView;
+
+    rotateLocal(largeView, state.mouse, 1.0, aspect);
   }
 
   state.mouse.lastX = state.mouse.x;
@@ -150,13 +163,28 @@ function handleMousemove(event, gl, state) {
 function handleScroll(event, gl, state) {
   event.preventDefault();
 
+  const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+
+  let view;
+  if (nearLargeSphere(state.mouse, aspect)) {
+    view = state.world.largeIsParameter
+      ? state.parameterView
+      : state.dynamicalView;
+  } else if (nearSmallSphere(state.mouse, aspect)) {
+    view = state.world.largeIsParameter
+      ? state.dynamicalView
+      : state.parameterView;
+  } else {
+    return;
+  }
+
   // Point in the center of the view
   const northPole = vec4.fromValues(0, 0, 1, 0);
   const southPole = vec4.fromValues(0, 0, -1, 0);
 
   // Reverse the rotation to see where was this point originally
-  vec4.transformMat4(northPole, northPole, state.largeView.invLocalMatrix);
-  vec4.transformMat4(southPole, southPole, state.largeView.invLocalMatrix);
+  vec4.transformMat4(northPole, northPole, view.invLocalMatrix);
+  vec4.transformMat4(southPole, southPole, view.invLocalMatrix);
 
   // Get the projective equivalent
   mutateToProjective(northPole);
@@ -164,7 +192,44 @@ function handleScroll(event, gl, state) {
 
   const scale = 1.0 + event.deltaY * 0.001;
 
-  updateMobius(state.largeView.mobiusMatrix, northPole, southPole, scale);
+  updateMobius(view.mobiusMatrix, northPole, southPole, scale);
+}
+
+function handleSwitchView(state) {
+  let smallView, largeView;
+  if (state.world.largeIsParameter) {
+    largeView = state.parameterView;
+    smallView = state.dynamicalView;
+  } else {
+    largeView = state.dynamicalView;
+    smallView = state.parameterView;
+  }
+
+  // Shift large view to the back (to appear smaller) and to the corner
+  mat4.translate(largeView.modelMatrix, largeView.modelMatrix, [0, 0, -7]);
+
+  const qLarge = quat.create();
+  quat.fromEuler(qLarge, -11.5, 24, 0);
+
+  const tLarge = vec3.fromValues(0, 0, 0);
+  const mLarge = mat4.create();
+  mat4.fromRotationTranslation(mLarge, qLarge, tLarge);
+
+  mat4.mul(largeView.modelMatrix, mLarge, largeView.modelMatrix);
+
+  // Shift small view out of the corner and to the front (to appear larger)
+  const qSmall = quat.create();
+  quat.fromEuler(qSmall, 11.5, -24, 0, "xyz");
+
+  const tSmall = vec3.fromValues(0, 0, 0);
+  const mSmall = mat4.create();
+  mat4.fromRotationTranslation(mSmall, qSmall, tSmall);
+
+  mat4.mul(smallView.modelMatrix, mSmall, smallView.modelMatrix);
+  mat4.translate(smallView.modelMatrix, smallView.modelMatrix, [0, 0, 7]);
+
+  // Record change of positions in the state
+  state.world.largeIsParameter = !state.world.largeIsParameter;
 }
 
 function updateMobius(mobius, pt1, pt2, scale) {

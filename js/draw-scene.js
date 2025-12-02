@@ -4,7 +4,7 @@ export { drawScene };
 
 const { mat4, mat3, vec3, vec2 } = glMatrix;
 
-function drawScene(gl, programInfo, buffers, state) {
+function drawScene(gl, state) {
   // Resize viewport in case canvas changed size
   resizeCanvasToDisplaySize(gl);
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -28,34 +28,34 @@ function drawScene(gl, programInfo, buffers, state) {
   mat4.perspective(state.world.projMatrix, fieldOfView, aspect, zNear, zFar);
 
   // Draw large view
-  setAttributesAndBuffers(gl, buffers, programInfo.largeView);
-  gl.useProgram(programInfo.largeView.program);
+  setAttributesAndBuffers(gl, state.buffers, state.programInfo.dynamicalView);
+  gl.useProgram(state.programInfo.dynamicalView.program);
   setUniforms(
     gl,
-    programInfo.largeView.uLocations,
-    state.largeView,
+    state.programInfo.dynamicalView.uLocations,
+    state.dynamicalView,
     state
   );
 
   {
-    const vertexCount = buffers.vertexCount;
+    const vertexCount = state.buffers.vertexCount;
     const type = gl.UNSIGNED_SHORT;
     const offset = 0;
     gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
   }
 
   // Draw dynamical space
-  setAttributesAndBuffers(gl, buffers, programInfo.smallView);
-  gl.useProgram(programInfo.smallView.program);
+  setAttributesAndBuffers(gl, state.buffers, state.programInfo.parameterView);
+  gl.useProgram(state.programInfo.parameterView.program);
   setUniforms(
     gl,
-    programInfo.smallView.uLocations,
-    state.smallView,
+    state.programInfo.parameterView.uLocations,
+    state.parameterView,
     state
   );
 
   {
-    const vertexCount = buffers.vertexCount;
+    const vertexCount = state.buffers.vertexCount;
     const type = gl.UNSIGNED_SHORT;
     const offset = 0;
     gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);

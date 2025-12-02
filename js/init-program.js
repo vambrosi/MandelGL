@@ -4,55 +4,45 @@ export { initProgram };
 
 import { toGLSL } from "./parser.js";
 
-function initProgram(gl, state, settings) {
-  // Create GLSL code for large view
+function initProgram(gl, state) {
+  // Create vertex shader (same for both views)
   const vsSource = getVSSource();
-  const fsSourceLargeView = getFSSource(true, state, settings);
-
   const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-  const fragmentShaderLargeView = loadShader(
-    gl,
-    gl.FRAGMENT_SHADER,
-    fsSourceLargeView
-  );
 
-  // Create the shader program
-  const programLargeView = gl.createProgram();
-  gl.attachShader(programLargeView, vertexShader);
-  gl.attachShader(programLargeView, fragmentShaderLargeView);
-  gl.linkProgram(programLargeView);
+  // Create GLSL code and shader program for the dynamical view
+  const fsSourceDynamical = getFSSource(false, state);
+  const fsDynamical = loadShader(gl, gl.FRAGMENT_SHADER, fsSourceDynamical);
+  const programDynamical = gl.createProgram();
+  gl.attachShader(programDynamical, vertexShader);
+  gl.attachShader(programDynamical, fsDynamical);
+  gl.linkProgram(programDynamical);
 
-  // If creating the shader program failed, alert
-  if (!gl.getProgramParameter(programLargeView, gl.LINK_STATUS)) {
+  if (!gl.getProgramParameter(programDynamical, gl.LINK_STATUS)) {
     alert(
-      `Unable to initialize program: ${gl.getProgramInfoLog(programLargeView)}`
+      `Unable to initialize program: ${gl.getProgramInfoLog(programDynamical)}`
     );
     return null;
   }
 
   // Same for small view
-  const fsSourceSmallView = getFSSource(false, state, settings);
-  const fragmentShaderSmallView = loadShader(
-    gl,
-    gl.FRAGMENT_SHADER,
-    fsSourceSmallView
-  );
+  const fsSourceParameter = getFSSource(true, state);
+  const fsParameter = loadShader(gl, gl.FRAGMENT_SHADER, fsSourceParameter);
 
-  const programSmallView = gl.createProgram();
-  gl.attachShader(programSmallView, vertexShader);
-  gl.attachShader(programSmallView, fragmentShaderSmallView);
-  gl.linkProgram(programSmallView);
+  const programParameter = gl.createProgram();
+  gl.attachShader(programParameter, vertexShader);
+  gl.attachShader(programParameter, fsParameter);
+  gl.linkProgram(programParameter);
 
-  if (!gl.getProgramParameter(programSmallView, gl.LINK_STATUS)) {
+  if (!gl.getProgramParameter(programParameter, gl.LINK_STATUS)) {
     alert(
-      `Unable to initialize program: ${gl.getProgramInfoLog(programSmallView)}`
+      `Unable to initialize program: ${gl.getProgramInfoLog(programParameter)}`
     );
     return null;
   }
 
   return {
-    largeView: programLargeView,
-    smallView: programSmallView,
+    dynamicalView: programDynamical,
+    parameterView: programParameter,
   };
 }
 
@@ -92,12 +82,12 @@ function getVSSource() {
     }`;
 }
 
-function getFSSource(isLargeView, state, settings) {
-  const fGLSL = toGLSL(settings.fExpr, true);
+function getFSSource(isParameterView, state) {
+  const fGLSL = toGLSL(state.settings.fExpr, true);
 
   let initialValueCode;
-  if (isLargeView == state.world.largeIsParameter) {
-    const critGLSL = toGLSL(settings.critExpr, true);
+  if (isParameterView) {
+    const critGLSL = toGLSL(state.settings.critExpr, true);
 
     initialValueCode = `
       vec4 c = vec4(localPos.xy, 1.0 + localPos.z, 0.0);
@@ -105,7 +95,7 @@ function getFSSource(isLargeView, state, settings) {
       vec4 z = ${critGLSL};
     `;
   } else {
-    const cGLSL = toGLSL(settings.cExpr, false);
+    const cGLSL = toGLSL(state.settings.cExpr, false);
 
     initialValueCode = `
       vec4 z = vec4(localPos.xy, 1.0 + localPos.z, 0.0);
@@ -137,12 +127,11 @@ function getFSSource(isLargeView, state, settings) {
     // Iterate function until it escapes
     void main(void) {
       ${initialValueCode}
-
       const vec4 infinity = vec4(1.0, 0.0, 0.0, 0.0);
       
       gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
       
-      for (int iter = 0; iter < ${settings.maxIterExpr}; iter++) {
+      for (int iter = 0; iter < ${state.settings.maxIterExpr}; iter++) {
         if (_pDist(z, infinity) < 1e-3) {
             float d = _pDist(z, infinity);
             float depth = fract((float(iter) - log2(-log(d))) / 64.0);
