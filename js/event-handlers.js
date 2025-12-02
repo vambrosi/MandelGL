@@ -96,16 +96,24 @@ function setEvents(gl, state) {
   // Set Button Events
   const resetLarge = document.querySelector("#resetLarge");
   resetLarge.addEventListener("click", (e) => {
-    mat4.identity(state.dynamicalView.localMatrix);
-    mat4.identity(state.dynamicalView.invLocalMatrix);
-    mat4.identity(state.dynamicalView.mobiusMatrix);
+    const view = state.world.largeIsParameter
+      ? state.parameterView
+      : state.dynamicalView;
+
+    mat4.identity(view.localMatrix);
+    mat4.identity(view.invLocalMatrix);
+    mat4.identity(view.mobiusMatrix);
   });
 
   const resetSmall = document.querySelector("#resetSmall");
   resetSmall.addEventListener("click", (e) => {
-    mat4.identity(state.parameterView.localMatrix);
-    mat4.identity(state.parameterView.invLocalMatrix);
-    mat4.identity(state.parameterView.mobiusMatrix);
+    const view = state.world.largeIsParameter
+      ? state.dynamicalView
+      : state.parameterView;
+
+    mat4.identity(view.localMatrix);
+    mat4.identity(view.invLocalMatrix);
+    mat4.identity(view.mobiusMatrix);
   });
 
   const switchViews = document.querySelector("#switchViews");
