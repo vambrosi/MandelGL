@@ -75,7 +75,7 @@ function getVSSource() {
     void main(void) {
       localPos = aPosition;
       modelPos = uProjMatrix * uModelMatrix * uLocalMatrix * aPosition;
-      gl_Position = uProjMatrix * uModelMatrix * uLocalMatrix * aPosition;
+      gl_Position = modelPos;
     }`;
 }
 
@@ -142,11 +142,11 @@ function getFSSource(isParameterView, state) {
         z = _user_defined_function(z,c);
       }
 
-      vec2 testVector = modelPos.xy / modelPos.w - uMousePosition.xy;
-      testVector.x *= uProjMatrix[1][1] / uProjMatrix[0][0];
-      if (length(testVector) < 0.01) {
-        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-      }
+      // vec2 testVector = modelPos.xy / modelPos.w - uMousePosition.xy;
+      // testVector.x *= uProjMatrix[1][1] / uProjMatrix[0][0];
+      // if (length(testVector) < 0.01) {
+      //   gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+      // }
     }
     `;
 

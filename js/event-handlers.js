@@ -19,9 +19,8 @@ function setEvents(gl, state) {
     handleMousemove(e, gl, state);
   });
 
-  window.addEventListener("mouseup", (_) => {
-    state.mouse.lastClick = "none";
-    mouseSpan.textContent = "";
+  window.addEventListener("mouseup", (e) => {
+    handleMouseup(e, gl, state);
   });
 
   // Set Menu Events
@@ -130,13 +129,29 @@ function handleMousedown(_, gl, state) {
 
   if (nearLargeSphere(state.mouse, aspect)) {
     state.mouse.lastClick = "large";
-    mouseSpan.textContent = "L";
+    document.body.style.cursor = "grabbing";
   } else if (nearSmallSphere(state.mouse, aspect)) {
     state.mouse.lastClick = "small";
-    mouseSpan.textContent = "S";
+    document.body.style.cursor = "grabbing";
   } else {
     state.mouse.lastClick = "none";
-    mouseSpan.textContent = "";
+    document.body.style.cursor = "grab";
+  }
+}
+
+function handleMouseup(_, gl, state) {
+  const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+
+  state.mouse.lastClick = "none";
+  mouseSpan.textContent = "";
+
+  if (
+    nearLargeSphere(state.mouse, aspect) ||
+    nearSmallSphere(state.mouse, aspect)
+  ) {
+    document.body.style.cursor = "grab";
+  } else {
+    document.body.style.cursor = "default";
   }
 }
 
@@ -162,6 +177,13 @@ function handleMousemove(event, gl, state) {
       : state.dynamicalView;
 
     rotateLocal(largeView, state.mouse, 1.0, aspect);
+  } else if (
+    nearLargeSphere(state.mouse, aspect) ||
+    nearSmallSphere(state.mouse, aspect)
+  ) {
+    document.body.style.cursor = "grab";
+  } else {
+    document.body.style.cursor = "default";
   }
 
   state.mouse.lastX = state.mouse.x;
