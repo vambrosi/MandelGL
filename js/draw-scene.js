@@ -88,7 +88,6 @@ function setUniforms(gl, locations, spaceState, state) {
 
   const mouseV = vec3.fromValues(state.mouse.x, state.mouse.y, -2.5);
 
-  gl.uniformMatrix4fv(locations.viewMatrix, false, state.world.viewMatrix);
   gl.uniformMatrix4fv(locations.projMatrix, false, state.world.projMatrix);
   gl.uniform3fv(locations.mousePosition, mouseV);
 

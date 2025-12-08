@@ -40,7 +40,6 @@ function initState(gl) {
 
     world: {
       deltaTime: 0,
-      viewMatrix: mat4.create(),
       projMatrix: mat4.create(),
       largeIsParameter: false,
     },
@@ -123,7 +122,6 @@ function setProgramInfo(gl, shaderProgram) {
       mobiusMatrix: gl.getUniformLocation(shaderProgram, "uMobiusMatrix"),
       localMatrix: gl.getUniformLocation(shaderProgram, "uLocalMatrix"),
       modelMatrix: gl.getUniformLocation(shaderProgram, "uModelMatrix"),
-      viewMatrix: gl.getUniformLocation(shaderProgram, "uViewMatrix"),
       projMatrix: gl.getUniformLocation(shaderProgram, "uProjMatrix"),
       colorPalette: gl.getUniformLocation(shaderProgram, "uColorPalette"),
     },

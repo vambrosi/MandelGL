@@ -67,7 +67,6 @@ function getVSSource() {
 
     uniform mat4 uLocalMatrix;
     uniform mat4 uModelMatrix;
-    uniform mat4 uViewMatrix;
     uniform mat4 uProjMatrix;
 
     varying vec4 modelPos;
@@ -75,10 +74,8 @@ function getVSSource() {
 
     void main(void) {
       localPos = aPosition;
-      modelPos = uProjMatrix * uViewMatrix * uModelMatrix
-                    * uLocalMatrix * aPosition;
-      gl_Position = uProjMatrix * uViewMatrix * uModelMatrix
-                    * uLocalMatrix * aPosition;
+      modelPos = uProjMatrix * uModelMatrix * uLocalMatrix * aPosition;
+      gl_Position = uProjMatrix * uModelMatrix * uLocalMatrix * aPosition;
     }`;
 }
 
