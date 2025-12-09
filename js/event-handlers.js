@@ -3,7 +3,10 @@
 export { setEvents };
 
 const { mat4, quat, vec3, vec4 } = glMatrix;
+
 const mouseSpan = document.querySelector("#mouse-location");
+const switchTools = document.querySelector("#switchTools");
+const toolIcon = switchTools.querySelector("i");
 
 function setEvents(gl, state) {
   // Set Mouse Events
@@ -117,7 +120,11 @@ function setEvents(gl, state) {
 
   const switchViews = document.querySelector("#switchViews");
   switchViews.addEventListener("click", (e) => {
-    handleSwitchView(state);
+    handleSwitchViews(state);
+  });
+
+  switchTools.addEventListener("click", (e) => {
+    handleToolSwitch(e, state);
   });
 
   // Compile the first program with the default settings
@@ -129,13 +136,13 @@ function handleMousedown(_, gl, state) {
 
   if (nearLargeSphere(state.mouse, aspect)) {
     state.mouse.lastClick = "large";
-    document.body.style.cursor = "grabbing";
+    document.body.style.cursor = state.currentTool.cursorPressed;
   } else if (nearSmallSphere(state.mouse, aspect)) {
     state.mouse.lastClick = "small";
-    document.body.style.cursor = "grabbing";
+    document.body.style.cursor = state.currentTool.cursorPressed;
   } else {
     state.mouse.lastClick = "none";
-    document.body.style.cursor = "grab";
+    document.body.style.cursor = "default";
   }
 }
 
@@ -149,7 +156,7 @@ function handleMouseup(_, gl, state) {
     nearLargeSphere(state.mouse, aspect) ||
     nearSmallSphere(state.mouse, aspect)
   ) {
-    document.body.style.cursor = "grab";
+    document.body.style.cursor = state.currentTool.cursorSphere;
   } else {
     document.body.style.cursor = "default";
   }
@@ -181,7 +188,7 @@ function handleMousemove(event, gl, state) {
     nearLargeSphere(state.mouse, aspect) ||
     nearSmallSphere(state.mouse, aspect)
   ) {
-    document.body.style.cursor = "grab";
+    document.body.style.cursor = state.currentTool.cursorSphere;
   } else {
     document.body.style.cursor = "default";
   }
@@ -225,7 +232,7 @@ function handleScroll(event, gl, state) {
   updateMobius(view.mobiusMatrix, northPole, southPole, scale);
 }
 
-function handleSwitchView(state) {
+function handleSwitchViews(state) {
   let smallView, largeView;
   if (state.world.largeIsParameter) {
     largeView = state.parameterView;
@@ -260,6 +267,13 @@ function handleSwitchView(state) {
 
   // Record change of positions in the state
   state.world.largeIsParameter = !state.world.largeIsParameter;
+}
+
+function handleToolSwitch(e, state) {
+  [state.currentTool, state.otherTool] = [state.otherTool, state.currentTool];
+
+  toolIcon.textContent = state.otherTool.iconName;
+  switchTools.title = state.otherTool.tooltip;
 }
 
 function updateMobius(mobius, pt1, pt2, scale) {

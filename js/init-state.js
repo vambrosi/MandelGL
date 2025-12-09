@@ -20,6 +20,20 @@ function initState(gl) {
       lastY: 0.0,
       lastClick: "none",
     },
+    // Starts as drag tool
+    currentTool: {
+      iconName: "pan_tool",
+      tooltip: "Drag View",
+      cursorSphere: "grab",
+      cursorPressed: "grabbing",
+    },
+    // Starts as pick point tool
+    otherTool: {
+      iconName: "touch_app",
+      tooltip: "Pick Point",
+      cursorSphere: "pointer",
+      cursorPressed: "pointer",
+    },
 
     // State variables for views
     dynamicalView: {
