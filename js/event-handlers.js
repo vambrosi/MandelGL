@@ -195,6 +195,8 @@ function handleMousemove(event, gl, state) {
 
   state.mouse.lastX = state.mouse.x;
   state.mouse.lastY = state.mouse.y;
+
+  updateMouseShadow(state);
 }
 
 function handleScroll(event, gl, state) {
@@ -384,4 +386,41 @@ function rotateLocal(spaceState, mouseState, scale, aspect) {
   );
 
   mat4.invert(spaceState.invLocalMatrix, spaceState.localMatrix);
+}
+
+function updateMouseShadow(state) {
+  const mouseVector = vec3.fromValues(
+    state.mouse.x / state.world.projMatrix[0],
+    state.mouse.y / state.world.projMatrix[5],
+    -1
+  );
+
+  updateSphereShadow(
+    state.mouse.smallSphereShadow,
+    mouseVector,
+    state.world.smallCenter
+  );
+  updateSphereShadow(
+    state.mouse.largeSphereShadow,
+    mouseVector,
+    state.world.largeCenter
+  );
+}
+
+function updateSphereShadow(sphereShadow, mouseVector, sphereCenter) {
+  const a = vec3.dot(sphereCenter, sphereCenter) - 1;
+  const b = -2 * vec3.dot(mouseVector, sphereCenter);
+  const c = vec3.dot(mouseVector, mouseVector);
+  const Delta = b * b - 4 * a * c;
+
+  if (Delta >= 0) {
+    const scale = (-b + Math.sqrt(Delta)) / (2 * a);
+    vec3.scale(sphereShadow, mouseVector, 1 / scale);
+
+    const position =
+      `(${sphereShadow[0].toFixed(2)},` +
+      `${sphereShadow[1].toFixed(2)},` +
+      `${sphereShadow[2].toFixed(2)})`;
+    mouseSpan.textContent = position;
+  }
 }

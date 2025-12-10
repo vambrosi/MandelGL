@@ -6,7 +6,7 @@ import { initProgram } from "./init-program.js";
 import { initBuffers } from "./init-buffers.js";
 import { initColorPalette } from "./init-palette.js";
 
-const { mat4, mat3, vec3, quat } = glMatrix;
+const { mat4, vec3, quat } = glMatrix;
 
 function initState(gl) {
   const state = {
@@ -19,6 +19,8 @@ function initState(gl) {
       lastX: 0.0,
       lastY: 0.0,
       lastClick: "none",
+      smallSphereShadow: vec3.create(),
+      largeSphereShadow: vec3.create(),
     },
     // Starts as drag tool
     currentTool: {
@@ -50,12 +52,15 @@ function initState(gl) {
       modelMatrix: mat4.create(),
       rotationAxis: vec3.create(),
       mobiusMatrix: mat4.create(),
+      parameter: math.complex(0, 1),
     },
 
     world: {
       deltaTime: 0,
       projMatrix: mat4.create(),
       largeIsParameter: false,
+      smallCenter: vec3.fromValues(0, 0, -10),
+      largeCenter: vec3.fromValues(0, 0, -3),
     },
 
     // These two objects will be initialized when the function
@@ -96,6 +101,7 @@ function initState(gl) {
 
   mat4.mul(state.parameterView.modelMatrix, m, state.parameterView.modelMatrix);
 
+  vec3.transformMat4(state.world.smallCenter, state.world.smallCenter, m);
   return state;
 }
 
